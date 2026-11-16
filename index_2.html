@@ -1,0 +1,2375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NACITA Capacity Plan</title>
+<meta name="description" content="NACITA supply-chain capacity plan — read-only view.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+
+<style>
+/* ── base reset (was provided by the artifact host) ── */
+html{-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:14px 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* ── publish toolbar ── */
+.hdr-pill{font:600 10.5px 'Inter',sans-serif;padding:4px 10px;border-radius:12px;white-space:nowrap;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2)}
+.hdr-pill.dirty{background:#B7791F;border-color:#D69E2E}
+.hdr-pill.ok{background:#276749;border-color:#38A169}
+.hdr-btn.primary{background:#1E72CC;border-color:#1E72CC;color:#fff}
+.hdr-btn.primary:hover{background:#2A82DE}
+#nc-toast{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:500;background:var(--navy);color:#fff;font:600 12px 'Inter',sans-serif;padding:10px 14px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:min(420px,calc(100vw - 32px))}
+.nc-help{margin:0 0 16px;padding:12px 14px;border:1px solid var(--border);border-left:4px solid var(--accent);background:var(--surface);border-radius:8px;font:12.5px/1.55 'Inter',sans-serif;color:var(--fg2)}
+.nc-help b{color:var(--fg)}
+@media (max-width:760px){.hdr-sub,.nc-hide-sm{display:none}}
+/* ── view mode: read-only ── */
+body.view-mode input.ci,body.view-mode input.fc-inp,body.view-mode:not(.daily-mode) input.di-inp{border-color:transparent!important;background:transparent!important;box-shadow:none!important;pointer-events:none;-moz-appearance:textfield;appearance:textfield}
+body.view-mode input.ci::-webkit-inner-spin-button,body.view-mode input.ci::-webkit-outer-spin-button,
+body.view-mode input.fc-inp::-webkit-inner-spin-button,body.view-mode input.fc-inp::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+body.view-mode .cp-save-btn,body.view-mode:not(.daily-mode) .di-save-btn,body.view-mode .edit-only,body.view-mode:not(.daily-mode) .daily-ok{display:none!important}
+body:not(.daily-mode) .daily-only{display:none!important}
+.nc-ed-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 16px;border-bottom:1px solid var(--blt);background:var(--surface2);font:12px 'Inter',sans-serif;color:var(--fg2)}
+.nc-ed-bar input{padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font:600 12px 'Inter',sans-serif;width:150px}
+.nc-ed-bar button{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--fg);font:600 11px 'Inter',sans-serif;cursor:pointer}
+.nc-ed-bar .nc-meta{margin-left:auto}
+#nc-di-sync{font:600 11.5px 'Inter',sans-serif}
+#nc-di-sync.ok{color:#22863a}#nc-di-sync.err{color:#d73a49}#nc-di-sync.busy{color:var(--fg2)}
+body:not(.view-mode) .view-only{display:none!important}
+</style>
+<style>
+/* ── TOKENS ── */
+:root {
+  --hdr: 52px; --sb: 220px;
+  --bg: #EBF0F7; --surface: #FFFFFF; --surface2: #F5F8FC;
+  --fg: #102030; --fg2: #3A5570; --fgm: #6A8AA8;
+  --border: #C8D8EA; --blt: #DDE8F4;
+  --navy: #15324E; --navy-dk: #0A1E30; --navy-lt: #2460A0;
+  --accent: #1E72CC; --accent-lt: #E4F0FB; --accent-dk: #164E90;
+  --inp-bg: #EDF4FF; --inp-fg: #0040BB; --inp-bd: #4A88CC;
+  --yel-bg: #FFFDE5; --yel-fg: #664400;
+  --calc-fg: #0A1420;
+  --avg-bg: #DCE9F8; --total-bg: #D4E5F8;
+  --ok: #15A050; --ok-bg: #E0FAE8; --ok-bd: #A0DAB0;
+  --warn: #CC7700; --warn-bg: #FFF5D8; --warn-bd: #E8C860;
+  --over: #CC2020; --over-bg: #FFE8E8; --over-bd: #F0A0A0;
+  --low: #607898; --low-bg: #EEF2F8;
+  --shadow: 0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0C1A28;--surface:#142030;--surface2:#1A2A3A;
+    --fg:#D8EAF8;--fg2:#80A8C8;--fgm:#507898;
+    --border:#263A52;--blt:#1A2E44;
+    --navy:#081828;--navy-dk:#040E18;--navy-lt:#1A5090;
+    --accent:#38A0EE;--accent-lt:#0A2040;--accent-dk:#2880C8;
+    --inp-bg:#0A1E30;--inp-fg:#68B0F0;--inp-bd:#2868A8;
+    --yel-bg:#201800;--yel-fg:#FCCA4A;--calc-fg:#BDD0E8;
+    --avg-bg:#0E2438;--total-bg:#0C2238;
+    --ok:#40D880;--ok-bg:#042018;--ok-bd:#186838;
+    --warn:#FCBB34;--warn-bg:#1A1000;--warn-bd:#483000;
+    --over:#F07070;--over-bg:#200808;--over-bd:#602020;
+    --low:#405870;--low-bg:#12202E;--shadow:0 1px 4px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1A28;--surface:#142030;--surface2:#1A2A3A;
+  --fg:#D8EAF8;--fg2:#80A8C8;--fgm:#507898;
+  --border:#263A52;--blt:#1A2E44;
+  --navy:#081828;--navy-dk:#040E18;--navy-lt:#1A5090;
+  --accent:#38A0EE;--accent-lt:#0A2040;--accent-dk:#2880C8;
+  --inp-bg:#0A1E30;--inp-fg:#68B0F0;--inp-bd:#2868A8;
+  --yel-bg:#201800;--yel-fg:#FCCA4A;--calc-fg:#BDD0E8;
+  --avg-bg:#0E2438;--total-bg:#0C2238;
+  --ok:#40D880;--ok-bg:#042018;--ok-bd:#186838;
+  --warn:#FCBB34;--warn-bg:#1A1000;--warn-bd:#483000;
+  --over:#F07070;--over-bg:#200808;--over-bd:#602020;
+  --low:#405870;--low-bg:#12202E;--shadow:0 1px 4px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:13px;line-height:1.45;
+  overflow:hidden;
+  padding-left:max(0px,env(safe-area-inset-left,0px));
+  padding-right:max(0px,env(safe-area-inset-right,0px));
+}
+body::before{
+  content:"";position:fixed;inset:0 0 auto;
+  height:env(safe-area-inset-top,0px);
+  background:var(--navy);z-index:200;
+}
+
+/* ── HEADER ── */
+#header{
+  position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;
+  z-index:150;background:var(--navy);height:var(--hdr);
+  display:flex;align-items:center;gap:14px;
+  padding:0 16px 0 max(16px,env(safe-area-inset-left,0px));
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.hdr-badge{background:var(--accent);color:#fff;font-weight:700;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.05em}
+.hdr-title{color:rgba(255,255,255,.95);font-weight:600;font-size:15px;white-space:nowrap}
+.hdr-sub{color:rgba(255,255,255,.45);font-size:10px;white-space:nowrap}
+.hdr-spacer{flex:1}
+.hdr-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.85);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap}
+.hdr-btn:hover{background:rgba(255,255,255,.2)}
+#theme-btn{font-size:15px;padding:5px 8px}
+#mob-menu-btn{display:none;font-size:18px;padding:4px 8px}
+
+/* ── APP SHELL ── */
+#app-shell{
+  display:flex;
+  position:fixed;
+  top:calc(var(--hdr) + env(safe-area-inset-top,0px));
+  left:0;right:0;
+  bottom:env(safe-area-inset-bottom,0px);
+}
+
+/* ── SIDEBAR ── */
+#sidebar{
+  width:var(--sb);flex-shrink:0;
+  background:var(--navy-dk);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent;
+  transition:transform .25s ease;
+  z-index:120;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px}
+
+.sb-section-label{
+  padding:16px 14px 6px;
+  font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);
+}
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 14px;cursor:pointer;
+  color:rgba(255,255,255,.58);font-size:12px;font-weight:500;
+  border-left:3px solid transparent;
+  transition:background .12s,color .12s,border-color .12s;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.88)}
+.sb-item.active{
+  background:rgba(30,114,204,.18);color:#fff;
+  border-left-color:var(--accent);font-weight:600;
+}
+.sb-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 14px}
+.sb-footer{margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-footer p{font-size:10px;color:rgba(255,255,255,.25);line-height:1.5}
+
+/* ── CONTENT AREA ── */
+#content{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 20px 20px;
+  background:var(--bg);
+}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* ── PAGE TITLE ── */
+.page-title{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-lt) 100%);
+  color:#fff;padding:16px 20px;border-radius:8px;margin-bottom:20px;
+}
+.page-title h1{font-size:17px;font-weight:700;margin-bottom:3px}
+.page-title p{font-size:11px;color:rgba(255,255,255,.6)}
+
+/* ── SECTION ── */
+.section{margin-bottom:24px}
+.sec-hd{
+  background:var(--navy);color:#fff;font-weight:600;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:7px 14px;border-radius:6px 6px 0 0;
+}
+.sec-sub{font-weight:500;font-size:11px;color:rgba(255,255,255,.6);margin-left:8px}
+.sec-body{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px}
+
+/* ── TABLES ── */
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--border);padding:5px 8px;text-align:right;vertical-align:middle;white-space:nowrap}
+th:first-child,td:first-child{
+  text-align:left;min-width:160px;max-width:230px;white-space:normal;word-break:break-word;
+  position:sticky;left:0;z-index:1;
+}
+thead th{background:var(--navy);color:#fff;font-weight:600;font-size:11px;letter-spacing:.04em}
+thead th.sub-hdr{background:var(--navy-lt);font-weight:500}
+thead th:first-child{background:var(--navy-dk)}
+tbody tr:nth-child(even) td{background:var(--surface2)}
+tbody tr:nth-child(odd) td:first-child,tbody tr:nth-child(even) td:first-child{background:inherit}
+tbody tr:nth-child(odd) td:first-child{background:var(--surface)}
+tbody tr:nth-child(even) td:first-child{background:var(--surface2)}
+.row-label{font-weight:500;color:var(--fg)}
+.row-total td{background:var(--total-bg)!important;font-weight:700}
+.row-total td:first-child{background:var(--total-bg)!important}
+td.avg{background:var(--avg-bg)!important;font-weight:600;color:var(--accent)}
+.ci-wrap{background:var(--inp-bg)}
+input.ci{background:transparent;border:none;outline:none;color:var(--inp-fg);font:600 12px/1 'Inter',sans-serif;text-align:right;width:100%;font-variant-numeric:tabular-nums;padding:2px 0}
+input.ci:focus{box-shadow:inset 0 -2px 0 var(--inp-bd)}
+td.yel{background:var(--yel-bg)!important}
+td.yel input.ci{color:var(--yel-fg)}
+.cf{color:var(--calc-fg);font-weight:500}
+.util-ok{background:var(--ok-bg);color:var(--ok);font-weight:600}
+.util-warn{background:var(--warn-bg);color:var(--warn);font-weight:600}
+.util-over{background:var(--over-bg);color:var(--over);font-weight:600}
+.util-low{background:var(--low-bg);color:var(--low);font-weight:500}
+.rag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.rag-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-bd)}
+.rag-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-bd)}
+.rag-over{background:var(--over-bg);color:var(--over);border:1px solid var(--over-bd)}
+.rag-low{background:var(--low-bg);color:var(--low);border:1px solid var(--border)}
+.sec-row-title td{background:var(--navy)!important;color:#fff;font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:6px 10px!important;text-align:left!important}
+.sec-row-title td:first-child{background:var(--navy)!important}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;border-left:3px solid var(--accent);box-shadow:var(--shadow)}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--fgm);margin-bottom:6px}
+.kpi-value{font-size:22px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.kpi-unit{font-size:11px;color:var(--fgm);margin-top:2px}
+.kpi-card.kpi-warn{border-left-color:var(--warn)}
+.kpi-card.kpi-over{border-left-color:var(--over)}
+.kpi-card.kpi-ok{border-left-color:var(--ok)}
+
+/* ── FORMULA BOX ── */
+.formula-box{background:var(--accent-lt);border:1px solid var(--accent);border-radius:8px;padding:16px 20px}
+.formula-box h3{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.formula-row{display:flex;gap:8px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--blt)}
+.formula-row:last-child{border-bottom:none}
+.formula-label{font-weight:700;color:var(--navy-lt);min-width:80px;font-size:12px}
+.formula-eq{color:var(--fg2);font-size:12px}
+.formula-eq strong{color:var(--fg)}
+
+/* ── FORM / ASSUMPTIONS ── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:16px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:11px;font-weight:600;color:var(--fg2);letter-spacing:.03em}
+.form-input{background:var(--inp-bg);border:1px solid var(--inp-bd);color:var(--inp-fg);padding:7px 10px;border-radius:6px;font:600 13px 'Inter',sans-serif;font-variant-numeric:tabular-nums;outline:none}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-lt)}
+.form-input.assump-input{background:var(--yel-bg);border-color:var(--warn-bd);color:var(--yel-fg)}
+.form-hint{font-size:10px;color:var(--fgm)}
+.form-computed{background:var(--surface2);border:1px solid var(--border);color:var(--calc-fg);padding:7px 10px;border-radius:6px;font:600 13px 'Inter',sans-serif;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--blt);font-size:11px;color:var(--fg2)}
+.leg-item{display:flex;align-items:center;gap:5px}
+.leg-dot{width:12px;height:12px;border-radius:2px}
+.leg-inp{background:var(--inp-bg);border:1px solid var(--inp-bd)}
+.leg-yel{background:var(--yel-bg);border:1px solid var(--warn-bd)}
+.leg-calc{background:var(--surface2);border:1px solid var(--border)}
+
+/* ── DATA TABLE (editable) ── */
+.dt-table input.dt-ci{
+  background:transparent;border:none;outline:none;width:100%;
+  color:var(--inp-fg);font:600 12px/1 'Inter',sans-serif;
+  font-variant-numeric:tabular-nums;padding:2px 0;text-align:left;
+}
+.dt-table input.dt-ci:focus{box-shadow:inset 0 -2px 0 var(--inp-bd)}
+.dt-table td.inp{background:var(--inp-bg)}
+.dt-table td.inp-r input.dt-ci{text-align:right}
+.dt-table select.dt-sel{
+  background:transparent;border:none;outline:none;width:100%;
+  color:var(--inp-fg);font:500 12px/1 'Inter',sans-serif;
+  cursor:pointer;padding:2px 0;
+  -webkit-appearance:none;
+}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:.03em}
+.tag-wh{background:#E8F4FF;color:#1A5090}
+.tag-lm{background:#E8FFF0;color:#0A6030}
+.tag-tt{background:#FFF5E8;color:#804000}
+.tag-all{background:var(--accent-lt);color:var(--accent-dk)}
+
+/* ── BADGE ── */
+.badge{display:inline-block;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600}
+.badge-gold{background:#FFF5D8;color:#8B6400;border:1px solid #E8C860}
+.badge-silver{background:#F0F4F8;color:#506070;border:1px solid #B0C8D8}
+.badge-bronze{background:#FFF0E8;color:#804020;border:1px solid #E0A880}
+
+/* ── WAREHOUSE SELECTOR ── */
+.wh-selector{display:flex;overflow-x:auto;gap:5px;padding:0 0 14px;scrollbar-width:none;flex-wrap:wrap}
+.wh-selector::-webkit-scrollbar{display:none}
+.wh-btn{flex-shrink:0;padding:6px 12px;border-radius:18px;border:1px solid var(--border);background:var(--surface);color:var(--fg2);font:600 11px/1.3 'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:.12s;text-align:left}
+.wh-btn:hover{background:var(--accent-lt);border-color:var(--accent);color:var(--accent-dk)}
+.wh-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.wh-code-sm{display:block;font-size:8.5px;opacity:.6;font-weight:400;margin-top:1px}
+.wh-btn.active .wh-code-sm{opacity:.8}
+
+/* ── WH HEADER BAND ── */
+.wh-band{background:linear-gradient(100deg,var(--navy) 0%,var(--navy-lt) 100%);color:#fff;padding:14px 18px;border-radius:8px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.wh-band-name{font-size:19px;font-weight:700}
+.wh-band-code{font-size:11px;opacity:.6;display:block;margin-top:2px}
+.wh-band-pill{background:rgba(255,255,255,.18);padding:4px 12px;border-radius:14px;font-size:11px;font-weight:500}
+.wh-band-spacer{flex:1}
+.wh-band-util{font-size:14px;font-weight:700}
+
+/* ── SNAPSHOT CARDS ── */
+.snap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;margin-bottom:20px}
+.snap-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 15px;border-top:3px solid var(--border)}
+.snap-ok{border-top-color:var(--ok)}.snap-warn{border-top-color:var(--warn)}.snap-over{border-top-color:var(--over)}.snap-low{border-top-color:var(--low)}
+.snap-lbl{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fgm);margin-bottom:5px}
+.snap-val{font-size:22px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.snap-sub{font-size:10px;color:var(--fgm);margin-top:2px}
+
+/* ── DAILY PERFORMANCE GRID ── */
+.daily-wrap{padding:10px 12px 14px}
+.daily-row-label{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);padding:8px 0 5px}
+.daily-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:10px}
+.d-cell{border-radius:5px;padding:4px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40px;cursor:default;position:relative}
+.d-num{font-size:7.5px;opacity:.5;font-weight:500;margin-bottom:2px}
+.d-val{font-size:11px;font-weight:700}
+.d-pct{font-size:8.5px;opacity:.75}
+.d-ok{background:var(--ok-bg);color:var(--ok)}.d-warn{background:var(--warn-bg);color:var(--warn)}
+.d-over{background:var(--over-bg);color:var(--over)}.d-low{background:var(--low-bg);color:var(--low)}
+.d-fut{background:var(--surface2);color:var(--fgm)}
+
+/* ── INLINE BAR ── */
+.inl-bar{display:flex;align-items:center;gap:7px}
+.inl-bar-track{flex:1;background:var(--border);border-radius:3px;height:7px;overflow:hidden}
+.inl-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.b-ok{background:var(--ok)}.b-warn{background:var(--warn)}.b-over{background:var(--over)}.b-low{background:var(--low)}
+.inl-bar-pct{font-size:11px;font-weight:700;min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ── CAP METHOD TABS ── */
+.cap-tabs{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--blt)}
+.cap-tab-btn{padding:5px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--fg2);font:600 11px 'Inter',sans-serif;cursor:pointer;transition:.12s}
+.cap-tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.cap-tab-btn:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+/* highlight the "current month" (Nov) column in cap-method table */
+.avg-col{background:var(--avg-bg)!important;font-weight:700}
+
+/* ── CUSTOMER PLANS & FORECAST ── */
+.cp-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.cp-seg{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.cp-seg-btn{padding:5px 14px;border:none;background:var(--surface);color:var(--fg2);font:600 11px 'Inter',sans-serif;cursor:pointer;transition:.12s}
+.cp-seg-btn.active{background:var(--navy);color:#fff}
+.cp-seg-btn:hover:not(.active){background:var(--blt)}
+.cp-filter{padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg);font:600 12px 'Inter',sans-serif;cursor:pointer}
+.cp-save-btn{margin-left:auto;padding:7px 18px;border-radius:8px;background:var(--navy);color:#fff;font:700 12px 'Inter',sans-serif;border:none;cursor:pointer}
+.cp-save-btn:hover{filter:brightness(1.1)}
+.cp-status{font:400 11px 'Inter',sans-serif;color:var(--fg2)}
+.cp-status.ok{color:#22c55e}
+.fc-tbl-wrap{border:1px solid var(--blt);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.fc-table{width:100%;border-collapse:collapse;font:12px 'Inter',sans-serif}
+.fc-table th{background:var(--surface);color:var(--fg2);font-weight:700;padding:7px 8px;text-align:center;border-bottom:2px solid var(--blt);white-space:nowrap;position:sticky;top:0;z-index:2}
+.fc-table th.sticky-col{position:sticky;left:0;z-index:3;text-align:left}
+.fc-table td{padding:4px 6px;border-bottom:1px solid var(--blt);text-align:right;vertical-align:middle;font-variant-numeric:tabular-nums}
+.fc-table td.sticky-col{text-align:left;font-weight:600;color:var(--navy);position:sticky;left:0;background:var(--bg);z-index:1;white-space:nowrap;padding-left:10px}
+.fc-table tr:hover td{background:var(--surface-hover,var(--surface))}
+.fc-table tr:hover td.sticky-col{background:var(--surface-hover,var(--surface))}
+.fc-table tr:last-child td{border-bottom:none}
+.fc-table td.row-metric{font-style:italic;color:var(--fgm);font-size:11px;text-align:left;padding-left:12px}
+.fc-table td.cur-mo{background:var(--avg-bg)!important;font-weight:700}
+.fc-inp{width:60px;padding:3px 5px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--fg);font:600 12px 'Inter',sans-serif;text-align:right;transition:.12s}
+.fc-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 20%,transparent)}
+.fc-inp.edited{border-color:var(--accent)}
+.var-pos{color:#22c55e;font-weight:700}
+.var-neg{color:#ef4444;font-weight:700}
+.var-neu{color:var(--fg2)}
+.fc-growth-row td{background:color-mix(in srgb,var(--navy) 5%,var(--bg))!important;font-style:italic}
+.fc-section-hd{font:700 11px 'Inter',sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--fg2);padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--blt);display:flex;align-items:center;gap:8px}
+
+/* ── DAILY DATA ENTRY ── */
+.di-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--blt);border-radius:10px 10px 0 0}
+.di-toolbar label{font:600 12px 'Inter',sans-serif;color:var(--fg2)}
+.di-date-pick{padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg);font:600 13px 'Inter',sans-serif;cursor:pointer}
+.di-save-btn{margin-left:auto;padding:7px 20px;border-radius:8px;background:var(--navy);color:#fff;font:700 12px 'Inter',sans-serif;border:none;cursor:pointer;transition:.12s}
+.di-save-btn:hover{filter:brightness(1.1)}
+.di-status{font:400 11px 'Inter',sans-serif;color:var(--fg2);transition:.3s}
+.di-status.ok{color:#22c55e}
+.di-status.err{color:#ef4444}
+.di-wrap{border:1px solid var(--blt);border-radius:10px;overflow:hidden;margin-top:0}
+.di-table{width:100%;border-collapse:collapse;font:12px 'Inter',sans-serif}
+.di-table th{background:var(--surface);color:var(--fg2);font-weight:700;padding:7px 8px;text-align:center;border-bottom:2px solid var(--blt);white-space:nowrap;position:sticky;top:0;z-index:2}
+.di-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:var(--surface)}
+.di-table td{padding:4px 5px;border-bottom:1px solid var(--blt);text-align:center;vertical-align:middle}
+.di-table td:first-child{text-align:left;font-weight:600;padding-left:10px;color:var(--navy);position:sticky;left:0;background:var(--bg);z-index:1;white-space:nowrap}
+.di-table tr:last-child td{border-bottom:none}
+.di-table tr:hover td{background:var(--surface-hover,var(--surface))}
+.di-table tr:hover td:first-child{background:var(--surface-hover,var(--surface))}
+.di-inp{width:62px;padding:4px 5px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--fg);font:600 12px 'Inter',sans-serif;text-align:center;transition:.12s}
+.di-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 20%,transparent)}
+.di-inp.saved{border-color:#22c55e;background:color-mix(in srgb,#22c55e 8%,var(--bg))}
+.di-cap-hint{display:block;font:400 10px 'Inter',sans-serif;color:var(--fg2);margin-top:1px}
+
+/* ── MOBILE ── */
+@media (max-width:680px){
+  :root{--sb:200px}
+  #mob-menu-btn{display:block}
+  #sidebar{
+    position:fixed;top:calc(var(--hdr)+env(safe-area-inset-top,0px));
+    left:0;bottom:0;transform:translateX(-100%);
+  }
+  #sidebar.open{transform:translateX(0)}
+  #sb-overlay{
+    display:none;position:fixed;inset:0;z-index:110;
+    background:rgba(0,0,0,.45);
+  }
+  #sb-overlay.open{display:block}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+}
+</style><script>window.NACITA_MODE='view';</script>
+</head>
+<body>
+
+
+<!-- SAFE-AREA BAND -->
+<div style="position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--navy);z-index:200"></div>
+
+<!-- HEADER -->
+<div id="header">
+  <button class="hdr-btn" id="mob-menu-btn" onclick="toggleMobMenu()" aria-label="Menu">☰</button>
+  <div class="hdr-badge">NACITA</div>
+  <div>
+    <div class="hdr-title">Capacity Planning</div>
+    <div class="hdr-sub">Supply Chain Director · Monthly</div>
+  </div>
+  <div class="hdr-spacer"></div>
+  <span class="hdr-pill" id="nc-status">Loading…</span>
+  <a class="hdr-btn edit-only nc-hide-sm" href="index.html" target="_blank" rel="noopener" style="text-decoration:none">👁 Public view</a>
+  <button class="hdr-btn edit-only nc-hide-sm" onclick="ncImportClick()">⬆ Import</button>
+  <button class="hdr-btn edit-only nc-hide-sm" onclick="ncReset()">⟲ Reset</button>
+  <button class="hdr-btn edit-only primary" onclick="ncExport()">⬇ Export data.json</button>
+  <button class="hdr-btn edit-only" onclick="renderAll()">↻ Recalc</button>
+  <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()">◐</button>
+  <input type="file" id="nc-import" accept=".json,application/json" hidden>
+</div>
+
+<div id="sb-overlay" onclick="toggleMobMenu()"></div>
+
+<!-- APP SHELL -->
+<div id="app-shell">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sb-section-label">Overview</div>
+    <div class="sb-item active" data-tab="dashboard"><span class="sb-icon">📊</span> Dashboard Summary</div>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section-label">Capacity</div>
+    <div class="sb-item" data-tab="warehouse"><span class="sb-icon">🏭</span> Warehouses Capacity</div>
+    <div class="sb-item" data-tab="lastmile"><span class="sb-icon">🚐</span> Last Mile Delivery</div>
+    <div class="sb-item" data-tab="fleet"><span class="sb-icon">🚛</span> Fleet Capacity</div>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section-label">Master Data</div>
+    <div class="sb-item" data-tab="resources"><span class="sb-icon">👥</span> Resources List</div>
+    <div class="sb-item" data-tab="clients-vol"><span class="sb-icon">📦</span> Client List &amp; Volumes</div>
+    <div class="sb-item" data-tab="clients-master"><span class="sb-icon">🗂️</span> Client Masterdata</div>
+    <div class="sb-item" data-tab="masterdata"><span class="sb-icon">⚙️</span> Master Data List</div>
+    <div class="sb-section-label">Planning</div>
+    <div class="sb-item" data-tab="custplans"><span class="sb-icon">📈</span> Customer Plans &amp; Forecast</div>
+    <div class="sb-section-label daily-ok">Operations</div>
+    <div class="sb-item daily-ok" data-tab="dailyinput"><span class="sb-icon">✏️</span> Daily Data Entry</div>
+
+    <div class="sb-footer">
+      <p>NACITA Supply Chain<br>Capacity Plan v2.0<br>Nov 2026</p>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div id="pane-dashboard" class="tab-pane active">
+      <div class="page-title">
+        <h1>Capacity Overview — All Business Units</h1>
+        <p>CEO / COO level · Rated Capacity = Available Resources × Utilization × Efficiency · Update Master Data to change baseline assumptions</p>
+      </div>
+      <div class="nc-help edit-only"><b>Admin mode.</b> Your edits save automatically in this browser only.
+ To publish them to the public view: click <b>⬇ Export data.json</b>, then upload that file to your GitHub repository (replace the old one).
+ The public page updates within a few minutes.</div>
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="section">
+        <div class="sec-hd">BU Summary — Avg Monthly Utilization &amp; Rated Capacity</div>
+        <div class="sec-body"><div class="tbl-scroll"><table id="dash-table"></table></div></div>
+      </div>
+      <div class="section" id="dash-cap-method-sec">
+        <div class="sec-hd">Warehouse Capacity Utilization — 3 Methods
+          <span class="sec-sub">All 12 warehouses · Nov 2026 snapshot</span>
+        </div>
+        <div class="sec-body">
+          <div class="cap-tabs" id="cap-method-tabs">
+            <button class="cap-tab-btn active" data-method="vol" onclick="switchCapMethod('vol',this)">📦 Volume (CBM)</button>
+            <button class="cap-tab-btn" data-method="pp" onclick="switchCapMethod('pp',this)">🗂 Pallet Positions</button>
+            <button class="cap-tab-btn" data-method="rev" onclick="switchCapMethod('rev',this)">💰 Revenue (EGP)</button>
+          </div>
+          <div class="tbl-scroll"><table id="cap-method-tbl"></table></div>
+        </div>
+      </div>
+
+      <div class="formula-box" style="margin-top:20px">
+        <h3>Formula Reference</h3>
+        <div class="formula-row"><span class="formula-label">RC</span><span class="formula-eq"><strong>=</strong> Available Resources × Utilization × Efficiency</span></div>
+        <div class="formula-row"><span class="formula-label">Available</span><span class="formula-eq"><strong>=</strong> # FTE or Units × Capacity Constraint per Unit</span></div>
+        <div class="formula-row"><span class="formula-label">Utilization</span><span class="formula-eq"><strong>=</strong> (Total Available − Planned Stoppages − Planned Idle) ÷ Total Available</span></div>
+        <div class="formula-row"><span class="formula-label">Efficiency</span><span class="formula-eq"><strong>=</strong> 1 − Unexpected Loss Ratio</span></div>
+      </div>
+    </div>
+
+    <!-- WAREHOUSES CAPACITY -->
+    <div id="pane-warehouse" class="tab-pane">
+      <div class="page-title">
+        <h1>Warehouses Capacity</h1>
+        <p>12 warehouses · Racking (PP + CBM) · Docks · Mobile Equipment · Headcount · Daily IB/OB Performance</p>
+      </div>
+      <div id="wh-selector" class="wh-selector"></div>
+      <div id="wh-detail"></div>
+    </div>
+
+    <!-- LAST MILE -->
+    <div id="pane-lastmile" class="tab-pane">
+      <div class="page-title">
+        <h1>Last Mile Delivery Capacity — Monthly</h1>
+        <p>5 hubs · Shipments by route · Truck CBM &amp; Tonnes · Hub space &amp; operators</p>
+      </div>
+      <div id="lm-tables"></div>
+    </div>
+
+    <!-- FLEET CAPACITY -->
+    <div id="pane-fleet" class="tab-pane">
+      <div class="page-title">
+        <h1>Fleet Capacity — Monthly</h1>
+        <p>Truck fleet status · Driver utilization · 5 routes · CBM &amp; Tonnes by route</p>
+      </div>
+      <div id="tt-tables"></div>
+    </div>
+
+    <!-- RESOURCES LIST -->
+    <div id="pane-resources" class="tab-pane">
+      <div class="page-title">
+        <h1>Resources List</h1>
+        <p>All headcount, equipment and infrastructure assets across all business units</p>
+      </div>
+      <div id="res-content"></div>
+    </div>
+
+    <!-- CLIENT LIST & VOLUMES -->
+    <div id="pane-clients-vol" class="tab-pane">
+      <div class="page-title">
+        <h1>Client List &amp; Volumes</h1>
+        <p>Monthly contracted and actual volumes per client — Shipments, CBM, Tonnes</p>
+      </div>
+      <div id="clvol-content"></div>
+    </div>
+
+    <!-- CLIENT MASTERDATA -->
+    <div id="pane-clients-master" class="tab-pane">
+      <div class="page-title">
+        <h1>Client List — Master Data</h1>
+        <p>Client profiles · BU · Hub · Contract type · SLA tier · Account owner</p>
+      </div>
+      <div id="clmaster-content"></div>
+    </div>
+
+    <!-- MASTER DATA LIST -->
+    <div id="pane-masterdata" class="tab-pane">
+      <div class="page-title">
+        <h1>Master Data List</h1>
+        <p>Reference tables — Hubs · Routes · Equipment specs · Rate cards · Working-time assumptions</p>
+      </div>
+      <div id="md-content"></div>
+    </div>
+
+    <!-- CUSTOMER PLANS & FORECAST -->
+    <div id="pane-custplans" class="tab-pane">
+      <div class="page-title">
+        <h1>Customer Plans &amp; Forecast</h1>
+        <p>Monthly plan vs actual per client · 12-month forward forecast with growth rates · Variance analysis</p>
+      </div>
+      <div id="cp-content"></div>
+    </div>
+
+    <!-- DAILY DATA ENTRY -->
+    <div id="pane-dailyinput" class="tab-pane">
+      <div class="page-title">
+        <h1>Daily Data Entry</h1>
+        <p>Enter daily actuals for all warehouses · Press Save All to save online · Feeds the live warehouse views</p>
+      </div>
+      <div id="di-content"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app-shell -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════ */
+const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ── 12 WAREHOUSES — capacities from live WMS dashboard (31-Oct-2026) ── */
+const WAREHOUSES=[
+  // Z28 (all zones Z1+Z2+TCZ4+TCZ5): 34,839 PP total, 62.2% util
+  {id:'WH01',code:'NCT-WH-CAI-01',label:'Z28',   city:'Cairo',       zone:'CAI',ppCap:34839,cbmCap:52258,ibDocks:9,obDocks:7,flt:9,rt:4,hc:{mgr:2,sup:4,fltOp:9,picker:22,ibClk:4,disp:4},rateCBM:18,ratePP:45,baseUtil:.622},
+  // E2 (Z1+Z2+COOLING): 21,702 PP, over-capacity (~101%) capped at 0.95
+  {id:'WH02',code:'NCT-WH-CAI-01',label:'M13',   city:'Cairo',       zone:'CAI',ppCap:21702,cbmCap:32553,ibDocks:5,obDocks:4,flt:5,rt:3,hc:{mgr:1,sup:3,fltOp:5,picker:16,ibClk:3,disp:3},rateCBM:18,ratePP:45,baseUtil:.95},
+  // ABU RAWASH NCR: 1,000 SQM zone, estimated 3,200 PP (new ramp-up site)
+  {id:'WH03',code:'NCT-WH-CAI-03',label:'AB.RW', city:'Cairo (NCR)', zone:'CAI',ppCap:3200, cbmCap:4800, ibDocks:2,obDocks:2,flt:2,rt:1,hc:{mgr:1,sup:2,fltOp:2,picker:6, ibClk:2,disp:2},rateCBM:19,ratePP:46,baseUtil:.50},
+  // MOURAD 2: 10,000 PP, over-capacity (117.7%) capped at 0.95
+  {id:'WH04',code:'NCT-WH-CAI-04',label:'MR2',   city:'Cairo',       zone:'CAI',ppCap:10000,cbmCap:15000,ibDocks:2,obDocks:3,flt:3,rt:2,hc:{mgr:1,sup:2,fltOp:3,picker:8, ibClk:2,disp:2},rateCBM:18,ratePP:45,baseUtil:.95},
+  // MOURAD 1: 18,000 PP, 95.7% util
+  {id:'WH05',code:'NCT-WH-CAI-05',label:'MR1',   city:'Cairo',       zone:'CAI',ppCap:18000,cbmCap:27000,ibDocks:4,obDocks:4,flt:5,rt:2,hc:{mgr:1,sup:3,fltOp:5,picker:14,ibClk:3,disp:3},rateCBM:18,ratePP:45,baseUtil:.957},
+  // ST. MARK: 23,000 PP, 74.1% util
+  {id:'WH06',code:'NCT-WH-CAI-06',label:'STM',   city:'Cairo',       zone:'CAI',ppCap:23000,cbmCap:34500,ibDocks:5,obDocks:5,flt:6,rt:3,hc:{mgr:1,sup:3,fltOp:6,picker:16,ibClk:3,disp:3},rateCBM:18,ratePP:45,baseUtil:.741},
+  // KATTAMYA: 8,000 SQM zone, estimated 8,000 PP (operational ramp)
+  {id:'WH07',code:'NCT-WH-CAI-07',label:'—',     city:'Cairo',       zone:'CAI',ppCap:8000, cbmCap:12000,ibDocks:2,obDocks:2,flt:2,rt:1,hc:{mgr:1,sup:2,fltOp:2,picker:7, ibClk:2,disp:2},rateCBM:16,ratePP:42,baseUtil:.60},
+  // BORG EL ARAB 1 (Alexandria): 1,200 PP, over-capacity (127%) capped at 0.95
+  {id:'WH08',code:'NCT-WH-ALX-08',label:'BEA1',  city:'Alexandria',  zone:'ALX',ppCap:1200, cbmCap:1800, ibDocks:1,obDocks:1,flt:1,rt:1,hc:{mgr:1,sup:1,fltOp:1,picker:3, ibClk:1,disp:1},rateCBM:17,ratePP:44,baseUtil:.95},
+  // BORG EL ARAB 2 (Alexandria): 1,200 PP, 82.3% util
+  {id:'WH09',code:'NCT-WH-ALX-09',label:'BEA2',  city:'Alexandria',  zone:'ALX',ppCap:1200, cbmCap:1800, ibDocks:1,obDocks:1,flt:1,rt:1,hc:{mgr:1,sup:1,fltOp:1,picker:3, ibClk:1,disp:1},rateCBM:17,ratePP:44,baseUtil:.823},
+  // HURGHADA: 1,000 PP, 0% active (seasonally low / ramp-up)
+  {id:'WH10',code:'NCT-WH-HRG-10',label:'HRGD',  city:'Hurghada',    zone:'HRG',ppCap:1000, cbmCap:1500, ibDocks:1,obDocks:1,flt:1,rt:1,hc:{mgr:1,sup:1,fltOp:1,picker:2, ibClk:1,disp:1},rateCBM:22,ratePP:52,baseUtil:.05},
+  // ABU RAWASH NCR (second site): 1,000 SQM, estimated 1,000 PP
+  {id:'WH11',code:'NCT-WH-CAI-11',label:'NCR',   city:'Cairo (NCR)', zone:'CAI',ppCap:1000, cbmCap:1500, ibDocks:1,obDocks:1,flt:1,rt:1,hc:{mgr:1,sup:1,fltOp:1,picker:3, ibClk:1,disp:1},rateCBM:19,ratePP:46,baseUtil:.50},
+  // DOKKI / MAKA (500 SQM open-yard + PP): estimated 3,000 PP
+  {id:'WH12',code:'NCT-WH-CAI-12',label:'—',     city:'Cairo',       zone:'CAI',ppCap:3000, cbmCap:4500, ibDocks:1,obDocks:2,flt:2,rt:1,hc:{mgr:1,sup:1,fltOp:2,picker:4, ibClk:1,disp:1},rateCBM:16,ratePP:42,baseUtil:.55},
+];
+// Seasonal monthly multiplier (Jan–Dec)
+const SEASON=[.90,.92,.98,1.08,1.04,.97,.88,.92,1.02,1.06,1.09,1.03];
+// Deterministic seeded pseudo-random 0–1
+function sr(s){const x=Math.sin(s*9301+49297)*233280;return x-Math.floor(x)}
+// Pre-compute per-warehouse monthly data
+const WH_DATA={};
+WAREHOUSES.forEach((wh,idx)=>{
+  wh._seed=idx*1000;
+  wh._totalHC=Object.values(wh.hc).reduce((a,b)=>a+b,0);
+  const d={
+    ppCap:   Array(12).fill(wh.ppCap),
+    ppOcc:   SEASON.map((_,m)=>Math.round(wh.ppCap*wh.baseUtil*SEASON[m]*(1+(sr(wh._seed+m)-.5)*.08))),
+    cbmCap:  Array(12).fill(wh.cbmCap),
+    cbmOcc:  SEASON.map((_,m)=>+((wh.cbmCap*wh.baseUtil*SEASON[m]*(1+(sr(wh._seed+50+m)-.5)*.08)).toFixed(1))),
+    ibAvail: Array(12).fill(wh.ibDocks),
+    ibUsed:  SEASON.map((_,m)=>Math.min(wh.ibDocks,Math.round(wh.ibDocks*wh.baseUtil*SEASON[m]*(1+(sr(wh._seed+100+m)-.5)*.12)))),
+    obAvail: Array(12).fill(wh.obDocks),
+    obUsed:  SEASON.map((_,m)=>Math.min(wh.obDocks,Math.round(wh.obDocks*wh.baseUtil*SEASON[m]*(1+(sr(wh._seed+150+m)-.5)*.12)))),
+    fltFleet:Array(12).fill(wh.flt),
+    fltOp:   Array(12).fill(Math.max(1,Math.round(wh.flt*.90))),
+    rtFleet: Array(12).fill(wh.rt),
+    rtOp:    Array(12).fill(Math.max(1,Math.round(wh.rt*.88))),
+    hcCap:   Array(12).fill(wh._totalHC),
+    hcAct:   Array(12).fill(Math.round(wh._totalHC*.95)),
+    _rows:{},
+  };
+  // Daily Nov 2026 (30 days, today=Nov 11 → index 10)
+  const ibPlan=wh.ibDocks*8, obPlan=wh.obDocks*12;
+  d.daily={
+    ibPlan,obPlan,
+    ibActual:Array.from({length:30},(_,i)=>i<=10?Math.round(ibPlan*(.60+sr(wh._seed+200+i)*.55)):null),
+    obActual:Array.from({length:30},(_,i)=>i<=10?Math.round(obPlan*(.55+sr(wh._seed+300+i)*.60)):null),
+  };
+  WH_DATA[wh.id]=d;
+});
+let _activeWH='WH01';
+let _capMethod='vol';
+
+const A = { hoursPerDay:8, daysPerMonth:22, defaults:{ wh:{util:.85,eff:.92}, lm:{util:.80,eff:.90}, tt:{util:.82,eff:.91} } };
+
+const RC = {
+  wh:{
+    rackPP:  {units:5000,util:.85,eff:.92,label:'Racking — Pallet Positions (PP)',  cap:1,    capLbl:'PP',              rcU:'PP / Month'},
+    rackCBM: {units:5000,util:.85,eff:.92,label:'Racking — Storage Volume (CBM)',   cap:1,    capLbl:'CBM',             rcU:'CBM / Month'},
+    ibDocks: {units:4,   util:.85,eff:.92,label:'Inbound Docks',                   cap:'h',  capLbl:'Hrs/Month',       rcU:'Dock-Hrs / Month'},
+    obDocks: {units:4,   util:.85,eff:.92,label:'Outbound Docks',                  cap:'h',  capLbl:'Hrs/Month',       rcU:'Dock-Hrs / Month'},
+    flt:     {units:6,   util:.80,eff:.90,label:'Forklifts (FLT)',                 cap:'h',  capLbl:'Hrs/Month',       rcU:'FLT-Hrs / Month'},
+    rt:      {units:4,   util:.80,eff:.90,label:'Reach Trucks (RT)',               cap:'h',  capLbl:'Hrs/Month',       rcU:'RT-Hrs / Month'},
+    hcMgr:   {units:2,   util:.85,eff:.92,label:'HC — Warehouse Manager',          cap:'h',  capLbl:'Manhrs/FTE',      rcU:'Manhours / Month'},
+    hcSup:   {units:4,   util:.85,eff:.92,label:'HC — Supervisor',                cap:'h',  capLbl:'Manhrs/FTE',      rcU:'Manhours / Month'},
+    hcFltOp: {units:6,   util:.85,eff:.92,label:'HC — FLT Operator',              cap:'h',  capLbl:'Manhrs/FTE',      rcU:'Manhours / Month'},
+    hcPicker:{units:20,  util:.85,eff:.92,label:'HC — Picker / Packer',           cap:'h',  capLbl:'Manhrs/FTE',      rcU:'Manhours / Month'},
+    hcIbClk: {units:4,   util:.85,eff:.92,label:'HC — Inbound Clerk',             cap:'h',  capLbl:'Manhrs/FTE',      rcU:'Manhours / Month'},
+    hcDisp:  {units:4,   util:.85,eff:.92,label:'HC — Dispatcher',                cap:'h',  capLbl:'Manhrs/FTE',      rcU:'Manhours / Month'},
+  },
+  lm:{
+    truckCBM:{units:10,util:.80,eff:.90,label:'Delivery Trucks — Volume (CBM)',  cap:14.0,capLbl:'CBM/truck',  rcU:'CBM / Month'},
+    truckTon:{units:10,util:.80,eff:.90,label:'Delivery Trucks — Tonnes',        cap:3.5, capLbl:'Tonnes/truck',rcU:'Tonnes / Month'},
+    routes:  {units:30,util:.80,eff:.90,label:'Courier Routes',                  cap:40,  capLbl:'Shipmnts/rt', rcU:'Shipments / Month'},
+    hubSpace:{units:500,util:.80,eff:.90,label:'Hub Space (Sorting CBM)',         cap:1,   capLbl:'CBM',         rcU:'CBM / Month'},
+    hubRacks:{units:200,util:.80,eff:.90,label:'Hub Racks (Pallet Positions)',    cap:1,   capLbl:'PP',          rcU:'PP / Month'},
+    sortOps: {units:15,util:.80,eff:.90,label:'Sorting Operators',               cap:'h', capLbl:'Manhours',    rcU:'Manhours / Month'},
+    dispOps: {units:5, util:.80,eff:.90,label:'Dispatch Operators',              cap:'h', capLbl:'Manhours',    rcU:'Manhours / Month'},
+    recvOps: {units:5, util:.80,eff:.90,label:'Receiving Operators',             cap:'h', capLbl:'Manhours',    rcU:'Manhours / Month'},
+  },
+  tt:{
+    ttCBM:   {units:15,util:.82,eff:.91,label:'Trucks — Volume Capacity (CBM)', cap:30.0,capLbl:'CBM/truck',  rcU:'CBM / Month'},
+    ttTon:   {units:15,util:.82,eff:.91,label:'Trucks — Weight (Tonnes)',        cap:10.0,capLbl:'Tonnes/truck',rcU:'Tonnes / Month'},
+    drivers: {units:18,util:.82,eff:.91,label:'Available Drivers',              cap:'h', capLbl:'Manhours',    rcU:'Manhours / Month'},
+    ttRoutes:{units:5, util:.82,eff:.91,label:'Available Routes',               cap:20,  capLbl:'Trips/rt/mo', rcU:'Trips / Month'},
+  },
+};
+
+const UD = {
+  wh:[{label:'Main Operations',avail:'h',stop:16,idle:8},{label:'Overtime Buffer',avail:'h',stop:0,idle:0},{label:'Maintenance Window',avail:'h',stop:8,idle:4}],
+  lm:[{label:'Hub Operations',avail:'h',stop:14,idle:10},{label:'Peak Period',avail:'h',stop:0,idle:0},{label:'Vehicle Maintenance',avail:'h',stop:12,idle:6}],
+  tt:[{label:'Route Ops',avail:'h',stop:12,idle:8},{label:'Overnight Runs',avail:'h',stop:0,idle:0},{label:'Truck Maintenance',avail:'h',stop:14,idle:4}],
+};
+
+const WH={
+  totalPP:Array(12).fill(5000),occPP:[3800,3900,4100,4200,4000,3700,3600,3800,4200,4300,4500,4400],
+  totalCBM:Array(12).fill(12500),occCBM:[9500,9700,10200,10500,10000,9200,9000,9500,10500,10700,11200,11000],
+  ibAvail:Array(12).fill(4),ibUsed:[3,3,4,4,3,3,3,3,4,4,4,4],
+  obAvail:Array(12).fill(4),obUsed:[3,4,4,4,3,3,2,3,4,4,4,4],
+  fltFleet:Array(12).fill(6),fltOp:[5,5,6,6,5,5,5,5,6,6,6,5],
+  rtFleet:Array(12).fill(4),rtOp:[3,4,4,4,3,3,3,3,4,4,4,3],
+  hcMgr:Array(12).fill(2),hcSup:Array(12).fill(4),
+  hcFltOp:[6,6,6,7,6,6,6,6,7,7,7,6],
+  hcPicker:[18,18,20,22,20,18,16,18,22,24,26,24],
+  hcIbClk:Array(12).fill(4),hcDisp:Array(12).fill(4),
+};
+
+const LM={
+  hub1Ships:[4200,4300,4500,4700,4400,4100,4000,4200,4600,4800,5100,4900],
+  hub2Ships:[3800,3900,4100,4200,4000,3700,3600,3800,4200,4400,4700,4500],
+  hub3Ships:[3100,3200,3400,3500,3300,3000,2900,3100,3400,3600,3800,3700],
+  hub4Ships:[2900,3000,3100,3300,3000,2800,2700,2900,3200,3400,3600,3400],
+  hub5Ships:[2100,2200,2300,2400,2200,2000,1900,2100,2300,2500,2700,2600],
+  truckCBMCap:Array(12).fill(140),truckCBMUsed:[112,114,120,126,118,107,104,112,122,128,136,132],
+  truckTonCap:Array(12).fill(35),truckTonUsed:[27.0,27.5,29.0,30.5,28.5,25.9,25.2,27.1,29.5,30.9,32.9,31.9],
+};
+
+const LM_HUBS=[
+  {name:'Hub-01 Cairo North',area:800,pp:120,cbm:320,dist:4.5,sort:5,disp:2,recv:2},
+  {name:'Hub-02 Cairo South',area:700,pp:100,cbm:280,dist:5.2,sort:4,disp:2,recv:2},
+  {name:'Hub-03 Alexandria',area:600,pp:90,cbm:240,dist:6.8,sort:4,disp:2,recv:2},
+  {name:'Hub-04 Giza',area:550,pp:80,cbm:200,dist:3.9,sort:3,disp:1,recv:1},
+  {name:'Hub-05 6th October',area:500,pp:70,cbm:180,dist:8.1,sort:3,disp:1,recv:1},
+];
+
+const TT={
+  fleetTotal:Array(12).fill(15),fleetOnRoad:[12,12,14,14,13,12,11,12,14,14,15,14],
+  fleetMaint:[2,2,1,1,1,2,2,2,1,1,0,1],
+  driversTotal:Array(12).fill(18),driversActive:[14,14,16,16,15,14,13,14,16,16,18,16],
+  r1CBM:[210,215,225,230,220,205,200,210,225,235,248,240],
+  r2CBM:[180,185,195,200,190,175,170,180,195,205,215,210],
+  r3CBM:[160,165,175,180,170,155,150,160,175,185,195,190],
+  r4CBM:[140,145,155,160,150,135,130,140,155,165,175,170],
+  r5CBM:[120,125,135,140,130,115,110,120,135,145,155,150],
+  r1Ton:[55,56,58,60,57,53,52,55,58,61,64,62],
+  r2Ton:[47,48,50,52,49,45,44,47,50,53,56,54],
+  r3Ton:[42,43,45,47,44,40,39,42,45,48,51,49],
+  r4Ton:[36,37,40,42,39,35,34,36,40,43,46,44],
+  r5Ton:[31,32,35,37,34,30,29,31,35,38,41,39],
+};
+
+const TT_ROUTES=[
+  {name:'Route-01 Cairo–Alex',       origin:'Cairo N Hub',  dest:'Alexandria',   dist:210,time:3.0,truck:'13-Ton',      cbm:30,ton:10,trips:20},
+  {name:'Route-02 Cairo–Suez',       origin:'Cairo N Hub',  dest:'Suez',         dist:130,time:2.0,truck:'13-Ton',      cbm:30,ton:10,trips:18},
+  {name:'Route-03 Cairo–Upper Egypt',origin:'Cairo S Hub',  dest:'Upper Egypt',  dist:500,time:7.0,truck:'Heavy Truck', cbm:40,ton:15,trips:12},
+  {name:'Route-04 Delta Loop',       origin:'Giza Hub',     dest:'Delta Loop',   dist:180,time:3.5,truck:'13-Ton',      cbm:30,ton:10,trips:16},
+  {name:'Route-05 Sinai',            origin:'6th Oct Hub',  dest:'Sinai',        dist:350,time:5.0,truck:'Heavy Truck', cbm:40,ton:15,trips:10},
+];
+
+// ── CLIENTS ──
+const CLIENTS = [
+  {id:'C001',name:'Pharma Egypt Co.',     bu:'WH', hub:'Hub-01',sla:'Gold',  contract:'Dedicated', owner:'Ahmed Nabil',  phone:'+20 100 111 2222',email:'ops@pharmaeg.com'},
+  {id:'C002',name:'Cairo Retail Group',   bu:'WH', hub:'Hub-01',sla:'Gold',  contract:'Dedicated', owner:'Sara Hassan',  phone:'+20 100 222 3333',email:'logistics@cairorg.com'},
+  {id:'C003',name:'Nile FMCG LLC',        bu:'LM', hub:'Hub-02',sla:'Silver',contract:'Shared',    owner:'Omar Fathy',   phone:'+20 100 333 4444',email:'supply@nilefmcg.com'},
+  {id:'C004',name:'AlexPort Traders',     bu:'LM', hub:'Hub-03',sla:'Silver',contract:'Shared',    owner:'Mona Kamal',   phone:'+20 100 444 5555',email:'ops@alexport.com'},
+  {id:'C005',name:'Delta Agri Export',    bu:'TT', hub:'Hub-04',sla:'Bronze',contract:'Spot',      owner:'Youssef Saad', phone:'+20 100 555 6666',email:'logistics@deltaagri.com'},
+  {id:'C006',name:'Sinai Minerals Co.',   bu:'TT', hub:'Hub-05',sla:'Silver',contract:'Dedicated', owner:'Hana Mostafa', phone:'+20 100 666 7777',email:'trade@sinaiminerals.com'},
+  {id:'C007',name:'Suez Canal Logistics', bu:'TT', hub:'Hub-01',sla:'Gold',  contract:'Dedicated', owner:'Khaled Ragab', phone:'+20 100 777 8888',email:'ops@suezlog.com'},
+  {id:'C008',name:'Upper Egypt Cement',   bu:'TT', hub:'Hub-02',sla:'Bronze',contract:'Spot',      owner:'Amira Nour',   phone:'+20 100 888 9999',email:'supply@ueccement.com'},
+  {id:'C009',name:'Giza Fresh Foods',     bu:'LM', hub:'Hub-04',sla:'Gold',  contract:'Dedicated', owner:'Tariq Badr',   phone:'+20 100 999 0000',email:'cold@gizafresh.com'},
+  {id:'C010',name:'Cairo E-Commerce Hub', bu:'LM', hub:'Hub-01',sla:'Gold',  contract:'Dedicated', owner:'Rania Sherif', phone:'+20 101 000 1111',email:'ecom@cairoece.com'},
+  {id:'C011',name:'Alex Steel Industries',bu:'TT', hub:'Hub-03',sla:'Silver',contract:'Shared',    owner:'Basem Zaki',   phone:'+20 101 111 2222',email:'logistics@alexsteel.com'},
+  {id:'C012',name:'Nile Valley Textiles', bu:'WH', hub:'Hub-02',sla:'Bronze',contract:'Shared',    owner:'Dina Youssef', phone:'+20 101 222 3333',email:'ops@nvtextiles.com'},
+];
+
+const CLIENT_VOLS = [
+  {id:'C001',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[920,940,990,1050,980,860,820,900,990,1040,1100,1060],ton:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:'C002',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[720,730,780,800,760,700,680,720,790,820,870,850],ton:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:'C003',ships:[1800,1850,1950,2000,1900,1750,1700,1800,1950,2050,2200,2100],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:'C004',ships:[1400,1450,1550,1600,1500,1400,1350,1450,1550,1650,1750,1700],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:'C005',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[280,285,300,310,295,270,260,280,300,315,330,325]},
+  {id:'C006',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[210,215,225,235,220,205,195,210,225,240,250,245]},
+  {id:'C007',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[180,185,195,200,190,175,170,180,195,210,220,215]},
+  {id:'C008',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[120,125,130,135,128,115,110,120,130,140,148,145]},
+  {id:'C009',ships:[900,920,980,1010,950,880,850,910,990,1040,1110,1070],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:'C010',ships:[2100,2150,2250,2350,2200,2050,2000,2100,2300,2400,2550,2450],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:'C011',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[0,0,0,0,0,0,0,0,0,0,0,0],ton:[150,155,163,170,160,145,140,150,163,175,185,180]},
+  {id:'C012',ships:[0,0,0,0,0,0,0,0,0,0,0,0],cbm:[380,385,405,420,395,360,345,375,405,425,450,440],ton:[0,0,0,0,0,0,0,0,0,0,0,0]},
+];
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+const availH = ()=>A.hoursPerDay*A.daysPerMonth;
+const avg = arr=>arr.reduce((s,v)=>s+v,0)/arr.length;
+const fmtN  = v=>(v===null||isNaN(v))?'—':Math.round(v).toLocaleString();
+const fmtD  = v=>(v===null||isNaN(v))?'—':v.toFixed(1);
+const fmtP  = v=>(v===null||isNaN(v))?'—':(v*100).toFixed(1)+'%';
+const capVal= r=>r.cap==='h'?availH():r.cap;
+const rcFor = r=>r.units*capVal(r)*r.util*r.eff;
+function utilClass(v){if(v>=.95)return'util-over';if(v>=.85)return'util-warn';if(v>=.60)return'util-ok';return'util-low'}
+function ragLabel(v){if(v>=.95)return['rag-over','🔴 OVER'];if(v>=.85)return['rag-warn','🟡 HIGH'];if(v>=.60)return['rag-ok','🟢 NORMAL'];return['rag-low','⚪ UNDER']}
+
+/* ═══════════════════════════════════════════════════════
+   BUILD HELPERS (monthly tables)
+═══════════════════════════════════════════════════════ */
+function thRow(cols){
+  const tr=document.createElement('tr');
+  cols.forEach(([txt,sub])=>{const th=document.createElement('th');th.textContent=txt;if(sub)th.className='sub-hdr';tr.appendChild(th)});
+  return tr;
+}
+function cfTd(txt,extra){const td=document.createElement('td');td.className='cf'+(extra?' '+extra:'');td.textContent=txt;return td}
+function labelTd(txt,bold){const td=document.createElement('td');td.className='row-label';if(bold)td.style.fontWeight='700';td.textContent=txt;return td}
+
+function buildMonthlySection(title,rows,container){
+  const sec=document.createElement('div');sec.className='section';
+  const hd=document.createElement('div');hd.className='sec-hd';hd.textContent=title;
+  const body=document.createElement('div');body.className='sec-body';
+  const wrap=document.createElement('div');wrap.className='tbl-scroll';
+  const tbl=document.createElement('table');
+  const thead=document.createElement('thead');
+  thead.appendChild(thRow([['Metric',false],...MO.map(m=>[m,true]),['Avg',true]]));
+  tbl.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    if(r.isTotal)tr.className='row-total';
+    if(r.isSectionTitle){
+      tr.className='sec-row-title';
+      const td=document.createElement('td');td.colSpan=14;td.textContent=r.label;
+      tr.appendChild(td);tbody.appendChild(tr);return;
+    }
+    tr.appendChild(labelTd(r.label,r.isTotal));
+    if(r.type==='input'){
+      MO.forEach((_,i)=>{
+        const td=document.createElement('td');td.className='ci-wrap';
+        const inp=document.createElement('input');inp.className='ci';inp.type='number';inp.value=r.data[i];
+        inp.oninput=()=>{const v=parseFloat(inp.value);if(!isNaN(v)){r.data[i]=v;renderAll()}};
+        td.appendChild(inp);tr.appendChild(td);
+      });
+      const avg2=cfTd('','avg');tr.appendChild(avg2);r._avgTd=avg2;
+    } else {
+      const cells=[];
+      MO.forEach((_,i)=>{const td=document.createElement('td');td.className='cf';cells.push(td);tr.appendChild(td)});
+      const avg2=cfTd('','avg');tr.appendChild(avg2);r._cells=cells;r._avgTd=avg2;
+    }
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);wrap.appendChild(tbl);body.appendChild(wrap);
+  sec.appendChild(hd);sec.appendChild(body);container.appendChild(sec);
+  return rows;
+}
+function updateMonthlyRows(rows){
+  rows.forEach(r=>{
+    if(r.isSectionTitle)return;
+    if(r.type==='input'){
+      const a=avg(Array.from(r.data));
+      r._avgTd.textContent=r.fmt==='pct'?fmtP(a):r.fmt==='dec'?fmtD(a):fmtN(a);
+    } else {
+      const vals=MO.map((_,i)=>r.fn(i));
+      vals.forEach((v,i)=>{
+        const td=r._cells[i];
+        td.textContent=r.fmt==='pct'?fmtP(v):r.fmt==='dec'?fmtD(v):fmtN(v);
+        td.className=r.fmt==='pct'?'cf '+utilClass(v):'cf';
+      });
+      const a=avg(vals);
+      r._avgTd.textContent=r.fmt==='pct'?fmtP(a):r.fmt==='dec'?fmtD(a):fmtN(a);
+      if(r.fmt==='pct')r._avgTd.className='avg cf '+utilClass(a);
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   BUILD TABS
+═══════════════════════════════════════════════════════ */
+let _monthlyRows={};
+let _udRows={};
+
+/* ── WAREHOUSE SELECTOR + DETAIL ── */
+function buildWarehouse(){
+  // Build selector buttons
+  const sel=document.getElementById('wh-selector');
+  sel.innerHTML='';
+  WAREHOUSES.forEach(wh=>{
+    const btn=document.createElement('button');
+    btn.className='wh-btn'+(wh.id===_activeWH?' active':'');
+    btn.innerHTML=`${wh.label}<span class="wh-code-sm">${wh.code}</span>`;
+    btn.onclick=()=>selectWarehouse(wh.id);
+    sel.appendChild(btn);
+  });
+  renderWhDetail(_activeWH);
+}
+
+function selectWarehouse(id){
+  _activeWH=id;
+  document.querySelectorAll('.wh-btn').forEach((b,i)=>b.classList.toggle('active',WAREHOUSES[i].id===id));
+  renderWhDetail(id);
+}
+
+function snapClass(v){return v>=.95?'snap-over':v>=.85?'snap-warn':v>=.60?'snap-ok':'snap-low'}
+function barClass(v){return v>=.95?'b-over':v>=.85?'b-warn':v>=.60?'b-ok':'b-low'}
+
+function renderWhDetail(id){
+  const wh=WAREHOUSES.find(w=>w.id===id);
+  const d=WH_DATA[id];
+  const container=document.getElementById('wh-detail');
+  container.innerHTML='';
+
+  // Nov = month index 10
+  const m=10;
+  const ppUtil=d.ppOcc[m]/d.ppCap[m];
+  const cbmUtil=d.cbmOcc[m]/d.cbmCap[m];
+  const ibUtil=d.ibUsed[m]/d.ibAvail[m];
+  const obUtil=d.obUsed[m]/d.obAvail[m];
+  const equipUtil=(d.fltOp[m]+d.rtOp[m])/(d.fltFleet[m]+d.rtFleet[m]);
+  const hcUtil=d.hcAct[m]/d.hcCap[m];
+
+  // ── HEADER BAND ──
+  const band=document.createElement('div');band.className='wh-band';
+  band.innerHTML=`
+    <div>
+      <div class="wh-band-name">${wh.code} <span style="opacity:.7;font-size:14px">(${wh.label})</span></div>
+      <span class="wh-band-code">${wh.city} · Zone ${wh.zone}</span>
+    </div>
+    <div class="wh-band-spacer"></div>
+    <div class="wh-band-pill">PP Cap: ${wh.ppCap.toLocaleString()}</div>
+    <div class="wh-band-pill">CBM Cap: ${wh.cbmCap.toLocaleString()}</div>
+    <div class="wh-band-pill">${wh._totalHC} FTE</div>
+    <div class="wh-band-pill">Nov Util: <strong>${(cbmUtil*100).toFixed(0)}%</strong></div>`;
+  container.appendChild(band);
+
+  // ── TODAY SNAPSHOT — merge saved daily actuals ──
+  const todayEntry=getDailyEntry(wh.id,_todayStr())||{};
+  const hasDailyActuals=Object.keys(todayEntry).length>0;
+  const pp_act=todayEntry.ppOcc!==undefined?todayEntry.ppOcc:d.ppOcc[m];
+  const cbm_act=todayEntry.cbmOcc!==undefined?todayEntry.cbmOcc:d.cbmOcc[m];
+  const ib_act=todayEntry.ibDocks!==undefined?todayEntry.ibDocks:d.ibUsed[m];
+  const ob_act=todayEntry.obDocks!==undefined?todayEntry.obDocks:d.obUsed[m];
+  const flt_act=todayEntry.fltOp!==undefined?todayEntry.fltOp:d.fltOp[m];
+  const rt_act=todayEntry.rtOp!==undefined?todayEntry.rtOp:d.rtOp[m];
+  const hc_act=todayEntry.hcPres!==undefined?todayEntry.hcPres:d.hcAct[m];
+  const pp_u=pp_act/wh.ppCap, cbm_u=cbm_act/wh.cbmCap;
+  const ib_u=ib_act/wh.ibDocks, ob_u=ob_act/wh.obDocks;
+  const eq_u=(flt_act+rt_act)/(wh.flt+wh.rt), hc_u=hc_act/wh._totalHC;
+  const srcLbl=hasDailyActuals?'<span style="font-size:9px;color:var(--ok);margin-left:6px">● live actuals</span>':'<span style="font-size:9px;color:var(--fg2);margin-left:6px">● monthly avg</span>';
+
+  const snapSec=document.createElement('div');snapSec.style.marginBottom='20px';
+  snapSec.innerHTML=`<div style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--fgm);margin-bottom:8px">Today Snapshot — ${wh.code}${srcLbl}</div>`;
+  const snapGrid=document.createElement('div');snapGrid.className='snap-grid';
+  [
+    {lbl:'PP Utilization',val:(pp_u*100).toFixed(1)+'%',sub:`${pp_act.toLocaleString()} / ${wh.ppCap.toLocaleString()} PP`,v:pp_u},
+    {lbl:'Volume (CBM)',val:(cbm_u*100).toFixed(1)+'%',sub:`${cbm_act.toLocaleString()} / ${wh.cbmCap.toLocaleString()} CBM`,v:cbm_u},
+    {lbl:'Inbound Docks',val:(ib_u*100).toFixed(0)+'%',sub:`${ib_act} / ${wh.ibDocks} docks active`,v:ib_u},
+    {lbl:'Outbound Docks',val:(ob_u*100).toFixed(0)+'%',sub:`${ob_act} / ${wh.obDocks} docks active`,v:ob_u},
+    {lbl:'Mobile Equipment',val:(eq_u*100).toFixed(0)+'%',sub:`FLT ${flt_act}/${wh.flt} · RT ${rt_act}/${wh.rt}`,v:eq_u},
+    {lbl:'Headcount',val:(hc_u*100).toFixed(0)+'%',sub:`${hc_act} / ${wh._totalHC} FTE active`,v:hc_u},
+  ].forEach(s=>{
+    const c=document.createElement('div');c.className=`snap-card ${snapClass(s.v)}`;
+    c.innerHTML=`<div class="snap-lbl">${s.lbl}</div><div class="snap-val">${s.val}</div><div class="snap-sub">${s.sub}</div>`;
+    snapGrid.appendChild(c);
+  });
+  snapSec.appendChild(snapGrid);
+  container.appendChild(snapSec);
+
+  // ── A. RACKING — MONTHLY ──
+  const rows=buildMonthlySection('A. Racking Capacity Utilization — Monthly',[
+    {label:'PP Capacity',      type:'input',  data:d.ppCap,   fmt:'num'},
+    {label:'PP Occupied',      type:'input',  data:d.ppOcc,   fmt:'num'},
+    {label:'PP Utilization %', type:'formula',fmt:'pct',fn:i=>d.ppOcc[i]/d.ppCap[i]},
+    {label:'CBM Capacity',     type:'input',  data:d.cbmCap,  fmt:'num'},
+    {label:'CBM Occupied',     type:'input',  data:d.cbmOcc,  fmt:'dec'},
+    {label:'CBM Utilization %',type:'formula',fmt:'pct',fn:i=>d.cbmOcc[i]/d.cbmCap[i]},
+  ],container);
+  d._rows.rack=rows;
+
+  // ── B. INBOUND / OUTBOUND DAILY ──
+  const dailySec=document.createElement('div');dailySec.className='section';
+  dailySec.innerHTML=`<div class="sec-hd">B. Inbound / Outbound — Daily Performance (Nov 2026)
+    <span class="sec-sub">Today: 11 Nov · Days 12–30 show plan only</span></div>
+    <div class="sec-body"><div class="daily-wrap" id="daily-${id}"></div></div>`;
+  container.appendChild(dailySec);
+  buildDailyGrid(wh,d,document.getElementById('daily-'+id));
+
+  // ── C. MOBILE EQUIPMENT — MONTHLY ──
+  const eqRows=buildMonthlySection('C. Mobile Equipment Capacity Utilization — Monthly',[
+    {label:'FLT Fleet',           type:'input',  data:d.fltFleet,fmt:'num'},
+    {label:'FLT Operational',     type:'input',  data:d.fltOp,   fmt:'num'},
+    {label:'FLT Utilization %',   type:'formula',fmt:'pct',fn:i=>d.fltOp[i]/d.fltFleet[i]},
+    {label:'Reach Truck Fleet',   type:'input',  data:d.rtFleet, fmt:'num'},
+    {label:'Reach Truck Operational',type:'input',data:d.rtOp,   fmt:'num'},
+    {label:'RT Utilization %',    type:'formula',fmt:'pct',fn:i=>d.rtOp[i]/d.rtFleet[i]},
+    {label:'Total Equipment Util %',type:'formula',fmt:'pct',fn:i=>(d.fltOp[i]+d.rtOp[i])/(d.fltFleet[i]+d.rtFleet[i])},
+  ],container);
+  d._rows.equip=eqRows;
+
+  // ── D. DOCKS — MONTHLY ──
+  const dkRows=buildMonthlySection('D. Docks Capacity Utilization — Monthly',[
+    {label:'IB Docks Available', type:'input',  data:d.ibAvail, fmt:'num'},
+    {label:'IB Docks Used',      type:'input',  data:d.ibUsed,  fmt:'num'},
+    {label:'IB Dock Utilization %',type:'formula',fmt:'pct',fn:i=>d.ibUsed[i]/d.ibAvail[i]},
+    {label:'OB Docks Available', type:'input',  data:d.obAvail, fmt:'num'},
+    {label:'OB Docks Used',      type:'input',  data:d.obUsed,  fmt:'num'},
+    {label:'OB Dock Utilization %',type:'formula',fmt:'pct',fn:i=>d.obUsed[i]/d.obAvail[i]},
+  ],container);
+  d._rows.docks=dkRows;
+
+  // ── E. HEADCOUNT — MONTHLY ──
+  const hcRows=buildMonthlySection('E. Headcount Capacity Utilization — Monthly',[
+    {label:`Manager (${wh.hc.mgr} budgeted)`,    type:'input',data:Array(12).fill(wh.hc.mgr),fmt:'num'},
+    {label:`Supervisor (${wh.hc.sup} budgeted)`,  type:'input',data:Array(12).fill(wh.hc.sup),fmt:'num'},
+    {label:`FLT Operator (${wh.hc.fltOp} budgeted)`,type:'input',data:Array(12).fill(wh.hc.fltOp),fmt:'num'},
+    {label:`Picker/Packer (${wh.hc.picker} budgeted)`,type:'input',data:Array(12).fill(wh.hc.picker),fmt:'num'},
+    {label:`IB Clerk (${wh.hc.ibClk} budgeted)`, type:'input',data:Array(12).fill(wh.hc.ibClk),fmt:'num'},
+    {label:`Dispatcher (${wh.hc.disp} budgeted)`,type:'input',data:Array(12).fill(wh.hc.disp),fmt:'num'},
+    {label:'TOTAL Headcount',type:'formula',fmt:'num',isTotal:true,fn:i=>wh._totalHC},
+    {label:'Active Headcount',type:'input',data:d.hcAct,fmt:'num'},
+    {label:'HC Utilization %',type:'formula',fmt:'pct',fn:i=>d.hcAct[i]/d.hcCap[i]},
+  ],container);
+  d._rows.hc=hcRows;
+
+  // Update computed cells
+  updateMonthlyRows(rows);
+  updateMonthlyRows(eqRows);
+  updateMonthlyRows(dkRows);
+  updateMonthlyRows(hcRows);
+}
+
+function buildDailyGrid(wh,d,container){
+  const dy=d.daily;
+  ['Inbound (Trucks / Day)','Outbound (Orders / Day)'].forEach((lbl,ri)=>{
+    const isOB=ri===1;
+    const plan=isOB?dy.obPlan:dy.ibPlan;
+    const actual=isOB?dy.obActual:dy.ibActual;
+    const rl=document.createElement('div');rl.className='daily-row-label';rl.textContent=lbl;
+    container.appendChild(rl);
+    const grid=document.createElement('div');grid.className='daily-grid';
+    for(let i=0;i<30;i++){
+      const cell=document.createElement('div');cell.className='d-cell';
+      const num=document.createElement('span');num.className='d-num';num.textContent=i+1;
+      const val=document.createElement('span');val.className='d-val';
+      const pct=document.createElement('span');pct.className='d-pct';
+      cell.appendChild(num);cell.appendChild(val);cell.appendChild(pct);
+      if(actual[i]===null){
+        cell.classList.add('d-fut');val.textContent=plan;pct.textContent='plan';
+      } else {
+        const p=actual[i]/plan;
+        cell.classList.add(p>=1.10?'d-over':p>=.95?'d-ok':p>=.80?'d-warn':'d-low');
+        val.textContent=actual[i];pct.textContent=Math.round(p*100)+'%';
+      }
+      cell.title=`Day ${i+1}: ${actual[i]!==null?actual[i]+' actual':plan+' planned'} / ${plan} plan`;
+      grid.appendChild(cell);
+    }
+    container.appendChild(grid);
+  });
+  // Legend
+  const leg=document.createElement('div');leg.style.cssText='font-size:10px;color:var(--fgm);display:flex;gap:12px;flex-wrap:wrap;padding:4px 0 0';
+  leg.innerHTML='<span style="color:var(--ok)">■ ≥95% on-plan</span><span style="color:var(--warn)">■ 80–95%</span><span style="color:var(--over)">■ >110% (backlog)</span><span style="color:var(--low)">■ <80% under-run</span><span style="color:var(--fgm)">■ Future (plan)</span>';
+  container.appendChild(leg);
+}
+
+/* ── LAST MILE ── */
+function buildLastMile(){
+  const c=document.getElementById('lm-tables');_monthlyRows.lm={};
+  _monthlyRows.lm.ships=buildMonthlySection('A. Shipments per Hub',[
+    {label:'Hub-01 Cairo N — Shipments',type:'input',data:LM.hub1Ships,fmt:'num'},
+    {label:'Hub-02 Cairo S — Shipments',type:'input',data:LM.hub2Ships,fmt:'num'},
+    {label:'Hub-03 Alexandria — Shipments',type:'input',data:LM.hub3Ships,fmt:'num'},
+    {label:'Hub-04 Giza — Shipments',type:'input',data:LM.hub4Ships,fmt:'num'},
+    {label:'Hub-05 6th Oct — Shipments',type:'input',data:LM.hub5Ships,fmt:'num'},
+    {label:'TOTAL SHIPMENTS',type:'formula',fmt:'num',isTotal:true,fn:i=>LM.hub1Ships[i]+LM.hub2Ships[i]+LM.hub3Ships[i]+LM.hub4Ships[i]+LM.hub5Ships[i]},
+  ],c);
+  _monthlyRows.lm.vol=buildMonthlySection('B. Truck Volume — CBM & Tonnes',[
+    {label:'Total Truck CBM Capacity',type:'input',data:LM.truckCBMCap,fmt:'num'},
+    {label:'CBM Utilised',type:'input',data:LM.truckCBMUsed,fmt:'dec'},
+    {label:'CBM Utilisation %',type:'formula',fmt:'pct',fn:i=>LM.truckCBMUsed[i]/LM.truckCBMCap[i]},
+    {label:'Total Truck Tonnes Capacity',type:'input',data:LM.truckTonCap,fmt:'num'},
+    {label:'Tonnes Utilised',type:'input',data:LM.truckTonUsed,fmt:'dec'},
+    {label:'Tonnes Utilisation %',type:'formula',fmt:'pct',fn:i=>LM.truckTonUsed[i]/LM.truckTonCap[i]},
+  ],c);
+  // Hub static
+  const sec=document.createElement('div');sec.className='section';
+  sec.innerHTML=`<div class="sec-hd">C. Hub Details — Space, Racks &amp; Operators</div>
+  <div class="sec-body"><div class="tbl-scroll"><table>
+  <thead><tr>
+    <th>Hub</th><th class="sub-hdr">Area m²</th><th class="sub-hdr">Rack PP</th><th class="sub-hdr">CBM</th>
+    <th class="sub-hdr">Avg km Hub→1st</th><th class="sub-hdr">Sort Ops</th><th class="sub-hdr">Disp Ops</th><th class="sub-hdr">Recv Ops</th>
+  </tr></thead><tbody id="lm-hubs-body"></tbody></table></div></div>`;
+  document.getElementById('lm-tables').appendChild(sec);
+  const tb=document.getElementById('lm-hubs-body');
+  LM_HUBS.forEach(h=>{
+    const tr=document.createElement('tr');
+    tr.appendChild(labelTd(h.name));
+    [h.area,h.pp,h.cbm,h.dist,h.sort,h.disp,h.recv].forEach(v=>{
+      const td=document.createElement('td');td.className='ci-wrap';
+      const inp=document.createElement('input');inp.type='number';inp.className='ci';inp.value=v;
+      inp.oninput=()=>renderAll();td.appendChild(inp);tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+/* ── FLEET CAPACITY ── */
+function buildFleet(){
+  const c=document.getElementById('tt-tables');_monthlyRows.tt={};
+  _monthlyRows.tt.fleet=buildMonthlySection('A. Fleet Status',[
+    {label:'Total Trucks Available',type:'input',data:TT.fleetTotal,fmt:'num'},
+    {label:'Trucks on Road',type:'input',data:TT.fleetOnRoad,fmt:'num'},
+    {label:'Trucks in Maintenance',type:'input',data:TT.fleetMaint,fmt:'num'},
+    {label:'Truck Operational %',type:'formula',fmt:'pct',fn:i=>TT.fleetOnRoad[i]/TT.fleetTotal[i]},
+    {label:'Available Drivers',type:'input',data:TT.driversTotal,fmt:'num'},
+    {label:'Active Drivers',type:'input',data:TT.driversActive,fmt:'num'},
+    {label:'Driver Utilisation %',type:'formula',fmt:'pct',fn:i=>TT.driversActive[i]/TT.driversTotal[i]},
+  ],c);
+  _monthlyRows.tt.vol=buildMonthlySection('B. Volume by Route — CBM & Tonnes',[
+    {label:'Route-01 Cairo–Alex CBM',type:'input',data:TT.r1CBM,fmt:'num'},
+    {label:'Route-02 Cairo–Suez CBM',type:'input',data:TT.r2CBM,fmt:'num'},
+    {label:'Route-03 Upper Egypt CBM',type:'input',data:TT.r3CBM,fmt:'num'},
+    {label:'Route-04 Delta Loop CBM',type:'input',data:TT.r4CBM,fmt:'num'},
+    {label:'Route-05 Sinai CBM',type:'input',data:TT.r5CBM,fmt:'num'},
+    {label:'TOTAL CBM',type:'formula',fmt:'num',isTotal:true,fn:i=>TT.r1CBM[i]+TT.r2CBM[i]+TT.r3CBM[i]+TT.r4CBM[i]+TT.r5CBM[i]},
+    {label:'Route-01 Cairo–Alex Tonnes',type:'input',data:TT.r1Ton,fmt:'num'},
+    {label:'Route-02 Cairo–Suez Tonnes',type:'input',data:TT.r2Ton,fmt:'num'},
+    {label:'Route-03 Upper Egypt Tonnes',type:'input',data:TT.r3Ton,fmt:'num'},
+    {label:'Route-04 Delta Loop Tonnes',type:'input',data:TT.r4Ton,fmt:'num'},
+    {label:'Route-05 Sinai Tonnes',type:'input',data:TT.r5Ton,fmt:'num'},
+    {label:'TOTAL TONNES',type:'formula',fmt:'num',isTotal:true,fn:i=>TT.r1Ton[i]+TT.r2Ton[i]+TT.r3Ton[i]+TT.r4Ton[i]+TT.r5Ton[i]},
+  ],c);
+  // Route details
+  const sec=document.createElement('div');sec.className='section';
+  sec.innerHTML=`<div class="sec-hd">C. Route Details</div>
+  <div class="sec-body"><div class="tbl-scroll"><table>
+  <thead><tr>
+    <th>Route</th><th class="sub-hdr">Origin</th><th class="sub-hdr">Destination</th>
+    <th class="sub-hdr">Dist (km)</th><th class="sub-hdr">Time (hrs)</th><th class="sub-hdr">Truck Type</th>
+    <th class="sub-hdr">Max CBM</th><th class="sub-hdr">Max Tonnes</th><th class="sub-hdr">Trips/Month</th>
+  </tr></thead><tbody id="tt-routes-body"></tbody></table></div></div>`;
+  document.getElementById('tt-tables').appendChild(sec);
+  const tb=document.getElementById('tt-routes-body');
+  TT_ROUTES.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.appendChild(labelTd(r.name));
+    [r.origin,r.dest].forEach(v=>{const td=document.createElement('td');td.textContent=v;td.style.color='var(--fg2)';tr.appendChild(td)});
+    [r.dist,r.time].forEach(v=>{
+      const td=document.createElement('td');td.className='ci-wrap';
+      const inp=document.createElement('input');inp.type='number';inp.className='ci';inp.value=v;
+      inp.oninput=()=>renderAll();td.appendChild(inp);tr.appendChild(td);
+    });
+    const ttTd=document.createElement('td');ttTd.textContent=r.truck;ttTd.style.color='var(--fg2)';tr.appendChild(ttTd);
+    [r.cbm,r.ton,r.trips].forEach(v=>{
+      const td=document.createElement('td');td.className='ci-wrap';
+      const inp=document.createElement('input');inp.type='number';inp.className='ci';inp.value=v;
+      inp.oninput=()=>renderAll();td.appendChild(inp);tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+/* ── RESOURCES LIST ── */
+function buildResources(){
+  const c=document.getElementById('res-content');
+  const addResTable=(title,headers,rows)=>{
+    const sec=document.createElement('div');sec.className='section';
+    const hd=document.createElement('div');hd.className='sec-hd';hd.textContent=title;
+    const body=document.createElement('div');body.className='sec-body';
+    const wrap=document.createElement('div');wrap.className='tbl-scroll';
+    const tbl=document.createElement('table');tbl.className='dt-table';
+    const thead=document.createElement('thead');
+    const htr=document.createElement('tr');
+    headers.forEach((h,i)=>{const th=document.createElement('th');th.textContent=h;if(i>0)th.className='sub-hdr';htr.appendChild(th)});
+    thead.appendChild(htr);tbl.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    rows.forEach(row=>{
+      const tr=document.createElement('tr');
+      row.forEach((cell,i)=>{
+        const td=document.createElement('td');
+        if(typeof cell==='number'){td.className='ci-wrap';const inp=document.createElement('input');inp.type='number';inp.className='ci';inp.value=cell;inp.oninput=()=>renderAll();td.appendChild(inp);}
+        else{td.className='row-label';td.style.fontWeight=(i===0?'500':'400');td.textContent=cell;}
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);wrap.appendChild(tbl);body.appendChild(wrap);
+    sec.appendChild(hd);sec.appendChild(body);c.appendChild(sec);
+  };
+  addResTable('Warehouse — Headcount by Role',
+    ['Role','Grade','Current FTE','Budgeted FTE','Open Positions','Contract Type'],
+    [['Warehouse Manager','M4',2,2,0,'Permanent'],['Warehouse Supervisor','M3',4,4,0,'Permanent'],
+     ['FLT Operator','S2',6,8,2,'Permanent'],['Picker / Packer','S1',20,24,4,'Permanent/Temp'],
+     ['Inbound Clerk','S2',4,4,0,'Permanent'],['Dispatcher','S2',4,4,0,'Permanent']]);
+  addResTable('Warehouse — Equipment & Infrastructure',
+    ['Resource','Type','Total','Operational','In Maintenance','Age (yrs)'],
+    [['Forklift (FLT)','Equipment',6,6,0,3.2],['Reach Truck (RT)','Equipment',4,4,0,2.8],
+     ['Conveyor Belt Line A','Infrastructure',1,1,0,5.0],['Pallet Racking','Infrastructure',5000,5000,0,4.1],
+     ['Loading Dock (IB)','Infrastructure',4,4,0,6.0],['Loading Dock (OB)','Infrastructure',4,4,0,6.0]]);
+  addResTable('Last Mile Delivery — Headcount by Role',
+    ['Role','Hub','Current FTE','Budgeted FTE','Open Positions','Contract Type'],
+    [['Hub Manager','All Hubs',5,5,0,'Permanent'],['Sorting Operator','All Hubs',19,22,3,'Permanent/Temp'],
+     ['Dispatch Operator','All Hubs',8,10,2,'Permanent'],['Receiving Operator','All Hubs',8,8,0,'Permanent'],
+     ['Courier Driver','All Hubs',30,35,5,'Permanent/Contract']]);
+  addResTable('Last Mile Delivery — Vehicle Fleet',
+    ['Vehicle','Hub','Total','Operational','In Maintenance','Capacity CBM'],
+    [['Delivery Truck — 1.5T','Hub-01',4,4,0,14],['Delivery Truck — 1.5T','Hub-02',2,2,0,14],
+     ['Delivery Truck — 1.5T','Hub-03',2,2,0,14],['Delivery Van','Hub-04',1,1,0,8],
+     ['Delivery Van','Hub-05',1,1,0,8]]);
+  addResTable('Technical Transportation — Drivers & Fleet',
+    ['Resource','Type','Total','Active','Inactive','Notes'],
+    [['Heavy Truck — 10T','Fleet',8,7,1,'1 in scheduled maintenance'],
+     ['13-Ton Truck','Fleet',7,7,0,'Full operational'],
+     ['Truck Driver — HGV','Headcount',18,16,2,'2 on annual leave'],
+     ['Route Planner','Headcount',2,2,0,''],
+     ['Fleet Mechanic','Headcount',3,3,0,'']]);
+}
+
+/* ── CLIENT LIST & VOLUMES ── */
+function buildClientVolumes(){
+  const c=document.getElementById('clvol-content');
+  const sec=document.createElement('div');sec.className='section';
+  const hd=document.createElement('div');hd.className='sec-hd';hd.textContent='Client Volumes — Shipments, CBM & Tonnes (Monthly)';
+  const body=document.createElement('div');body.className='sec-body';
+  const wrap=document.createElement('div');wrap.className='tbl-scroll';
+  const tbl=document.createElement('table');
+  const thead=document.createElement('thead');
+  const r1=document.createElement('tr');
+  const th0=document.createElement('th');th0.textContent='Client';r1.appendChild(th0);
+  const thBu=document.createElement('th');thBu.textContent='BU';thBu.className='sub-hdr';r1.appendChild(thBu);
+  const thM=document.createElement('th');thM.colSpan=3;thM.textContent='Metric';thM.className='sub-hdr';r1.appendChild(thM);
+  MO.forEach(m=>{const th=document.createElement('th');th.textContent=m;th.className='sub-hdr';r1.appendChild(th)});
+  const thA=document.createElement('th');thA.textContent='Avg';thA.className='sub-hdr';r1.appendChild(thA);
+  thead.appendChild(r1);tbl.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  CLIENTS.forEach(cl=>{
+    const vol=CLIENT_VOLS.find(v=>v.id===cl.id);if(!vol)return;
+    const buTag=`<span class="tag tag-${cl.bu.toLowerCase()}">${cl.bu}</span>`;
+    const metrics=[
+      {label:'Shipments',data:vol.ships,fmt:'num',show:vol.ships.some(v=>v>0)},
+      {label:'CBM',data:vol.cbm,fmt:'dec',show:vol.cbm.some(v=>v>0)},
+      {label:'Tonnes',data:vol.ton,fmt:'dec',show:vol.ton.some(v=>v>0)},
+    ].filter(m=>m.show);
+    metrics.forEach((m,mi)=>{
+      const tr=document.createElement('tr');
+      if(mi===0){
+        const tdN=document.createElement('td');tdN.className='row-label';tdN.rowSpan=metrics.length;
+        tdN.innerHTML=`${cl.name}<br><small style="color:var(--fgm)">${cl.id}</small>`;
+        tr.appendChild(tdN);
+        const tdB=document.createElement('td');tdB.innerHTML=buTag;tdB.style.textAlign='center';tdB.rowSpan=metrics.length;
+        tr.appendChild(tdB);
+      }
+      const tdL=document.createElement('td');tdL.textContent=m.label;tdL.style.cssText='color:var(--fgm);font-size:11px;font-style:italic';tr.appendChild(tdL);
+      m.data.forEach((v,i)=>{
+        const td=document.createElement('td');td.className='ci-wrap';
+        const inp=document.createElement('input');inp.type='number';inp.className='ci';inp.value=v;
+        inp.oninput=()=>{m.data[i]=parseFloat(inp.value)||0;renderAll()};
+        td.appendChild(inp);tr.appendChild(td);
+      });
+      const avTd=cfTd(m.fmt==='dec'?fmtD(avg(m.data)):fmtN(avg(m.data)),'avg');tr.appendChild(avTd);m._avgTd=avTd;
+      tbody.appendChild(tr);
+    });
+  });
+  tbl.appendChild(tbody);wrap.appendChild(tbl);body.appendChild(wrap);
+  sec.appendChild(hd);sec.appendChild(body);c.appendChild(sec);
+
+  // Totals by BU
+  const sec2=document.createElement('div');sec2.className='section';
+  sec2.innerHTML=`<div class="sec-hd">BU Volume Totals — Monthly</div>
+  <div class="sec-body"><div class="tbl-scroll"><table>
+  <thead><tr><th>Business Unit</th><th class="sub-hdr">Metric</th>${MO.map(m=>`<th class="sub-hdr">${m}</th>`).join('')}<th class="sub-hdr">Avg</th></tr></thead>
+  <tbody id="vol-totals-body"></tbody></table></div></div>`;
+  c.appendChild(sec2);
+  const tb=document.getElementById('vol-totals-body');
+  [
+    {bu:'WH',label:'Warehouse',metric:'CBM',fn:i=>CLIENT_VOLS.filter(v=>CLIENTS.find(cl=>cl.id===v.id&&cl.bu==='WH')).reduce((s,v)=>s+v.cbm[i],0)},
+    {bu:'LM',label:'Last Mile',metric:'Shipments',fn:i=>CLIENT_VOLS.filter(v=>CLIENTS.find(cl=>cl.id===v.id&&cl.bu==='LM')).reduce((s,v)=>s+v.ships[i],0)},
+    {bu:'TT',label:'Tech Trans',metric:'Tonnes',fn:i=>CLIENT_VOLS.filter(v=>CLIENTS.find(cl=>cl.id===v.id&&cl.bu==='TT')).reduce((s,v)=>s+v.ton[i],0)},
+  ].forEach(row=>{
+    const tr=document.createElement('tr');tr.className='row-total';
+    const tdBu=document.createElement('td');tdBu.innerHTML=`<span class="tag tag-${row.bu.toLowerCase()}">${row.label}</span>`;tr.appendChild(tdBu);
+    const tdM=document.createElement('td');tdM.className='cf';tdM.style.fontStyle='italic';tdM.textContent=row.metric;tr.appendChild(tdM);
+    const vals=MO.map((_,i)=>row.fn(i));
+    vals.forEach(v=>{const td=cfTd(fmtN(v),'');tr.appendChild(td)});
+    tr.appendChild(cfTd(fmtN(avg(vals)),'avg'));
+    tb.appendChild(tr);
+  });
+}
+
+/* ── CLIENT MASTERDATA ── */
+function buildClientMaster(){
+  const c=document.getElementById('clmaster-content');
+  const sec=document.createElement('div');sec.className='section';
+  const hd=document.createElement('div');hd.className='sec-hd';hd.textContent='Client Profiles — Master Data';
+  const body=document.createElement('div');body.className='sec-body';
+  const wrap=document.createElement('div');wrap.className='tbl-scroll';
+  const tbl=document.createElement('table');tbl.className='dt-table';
+  tbl.innerHTML=`<thead><tr>
+    <th>Client ID</th><th class="sub-hdr">Client Name</th><th class="sub-hdr">BU</th>
+    <th class="sub-hdr">Hub</th><th class="sub-hdr">SLA Tier</th><th class="sub-hdr">Contract</th>
+    <th class="sub-hdr">Account Owner</th><th class="sub-hdr">Phone</th><th class="sub-hdr">Email</th>
+  </tr></thead>`;
+  const tbody=document.createElement('tbody');
+  CLIENTS.forEach(cl=>{
+    const tr=document.createElement('tr');
+    const slaCls={'Gold':'badge-gold','Silver':'badge-silver','Bronze':'badge-bronze'}[cl.sla]||'';
+    const buTag=`<span class="tag tag-${cl.bu.toLowerCase()}">${cl.bu}</span>`;
+    [cl.id,cl.name,'__BU__',cl.hub,'__SLA__',cl.contract,cl.owner,cl.phone,cl.email].forEach((v,i)=>{
+      const td=document.createElement('td');
+      if(v==='__BU__'){td.innerHTML=buTag;td.style.textAlign='center';}
+      else if(v==='__SLA__'){td.innerHTML=`<span class="badge ${slaCls}">${cl.sla}</span>`;td.style.textAlign='center';}
+      else if(i>0&&i!==2&&i!==4){
+        td.className='inp ci-wrap';
+        const inp=document.createElement('input');inp.className='dt-ci';inp.value=v;inp.style.textAlign='left';
+        td.appendChild(inp);
+      } else {td.className='row-label';td.style.fontWeight=i===0?'700':'500';td.textContent=v;}
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);wrap.appendChild(tbl);body.appendChild(wrap);
+  sec.appendChild(hd);sec.appendChild(body);c.appendChild(sec);
+  // Summary by SLA
+  const sumSec=document.createElement('div');sumSec.className='section';
+  sumSec.innerHTML=`<div class="sec-hd">Client Count by SLA Tier &amp; BU</div><div class="sec-body"><div class="tbl-scroll"><table>
+  <thead><tr><th>SLA Tier</th><th class="sub-hdr">Total Clients</th><th class="sub-hdr">Warehouse</th><th class="sub-hdr">Last Mile</th><th class="sub-hdr">Tech Trans</th></tr></thead>
+  <tbody>${['Gold','Silver','Bronze'].map(sla=>{
+    const all=CLIENTS.filter(c=>c.sla===sla);
+    const cls={'Gold':'badge-gold','Silver':'badge-silver','Bronze':'badge-bronze'}[sla];
+    return`<tr><td class="row-label"><span class="badge ${cls}">${sla}</span></td>
+    <td class="cf" style="font-weight:700">${all.length}</td>
+    <td class="cf">${all.filter(c=>c.bu==='WH').length}</td>
+    <td class="cf">${all.filter(c=>c.bu==='LM').length}</td>
+    <td class="cf">${all.filter(c=>c.bu==='TT').length}</td></tr>`}).join('')}
+  </tbody></table></div></div>`;
+  c.appendChild(sumSec);
+}
+
+/* ── MASTER DATA LIST ── */
+function buildMasterData(){
+  const c=document.getElementById('md-content');
+  const addMDTable=(title,headers,rows)=>{
+    const sec=document.createElement('div');sec.className='section';
+    const hd=document.createElement('div');hd.className='sec-hd';hd.textContent=title;
+    const body=document.createElement('div');body.className='sec-body';
+    const wrap=document.createElement('div');wrap.className='tbl-scroll';
+    const tbl=document.createElement('table');tbl.className='dt-table';
+    const thead=document.createElement('thead');
+    const htr=document.createElement('tr');
+    headers.forEach((h,i)=>{const th=document.createElement('th');th.textContent=h;if(i>0)th.className='sub-hdr';htr.appendChild(th)});
+    thead.appendChild(htr);tbl.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    rows.forEach(row=>{
+      const tr=document.createElement('tr');
+      row.forEach((cell,i)=>{
+        const td=document.createElement('td');
+        if(typeof cell==='number'){
+          td.className='ci-wrap';
+          const inp=document.createElement('input');inp.type='number';inp.className='ci';inp.value=cell;
+          inp.oninput=()=>renderAll();td.appendChild(inp);
+        } else {td.className=i===0?'row-label':'cf';td.style.fontWeight=i===0?'500':'400';td.textContent=cell;}
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);wrap.appendChild(tbl);body.appendChild(wrap);
+    sec.appendChild(hd);sec.appendChild(body);c.appendChild(sec);
+  };
+
+  // Working-time assumptions (editable)
+  const assumpSec=document.createElement('div');assumpSec.className='section';
+  assumpSec.innerHTML=`<div class="sec-hd">Working-Time Assumptions</div><div class="sec-body"><div id="assump-form-grid" class="form-grid"></div></div>`;
+  c.appendChild(assumpSec);
+  const fg=document.getElementById('assump-form-grid');
+  const addFF=(label,id,val,isAssump,hint,computed)=>{
+    const ff=document.createElement('div');ff.className='form-field';
+    ff.innerHTML=`<label class="form-label">${label}</label>`;
+    if(computed){
+      const d=document.createElement('div');d.className='form-computed';d.id=id;ff.appendChild(d);
+    } else {
+      const inp=document.createElement('input');inp.type='number';inp.step=isAssump?'0.5':'1';inp.id=id;inp.value=val;
+      inp.className='form-input'+(isAssump?' assump-input':'');
+      inp.oninput=()=>{const v=parseFloat(inp.value);if(!isNaN(v)){if(id==='a-hrs')A.hoursPerDay=v;else A.daysPerMonth=v;renderAll()}};
+      ff.appendChild(inp);
+    }
+    if(hint){const h=document.createElement('div');h.className='form-hint';h.textContent=hint;ff.appendChild(h);}
+    fg.appendChild(ff);
+  };
+  addFF('Working Hours per Day','a-hrs',A.hoursPerDay,false,'Standard shift length (hrs)');
+  addFF('Working Days per Month','a-days',A.daysPerMonth,true,'Default 22 — update monthly');
+  addFF('Available Hours/Month (computed)','a-avail',0,false,'= hours × days',true);
+  ['wh','lm','tt'].forEach((bu,i)=>{
+    const names=['WH — Utilization','LM — Utilization','TT — Utilization'];
+    const ne=['WH — Efficiency','LM — Efficiency','TT — Efficiency'];
+    addFF(names[i],`a-${bu}-util`,A.defaults[bu].util,true,'Review monthly');
+    addFF(ne[i],`a-${bu}-eff`,A.defaults[bu].eff,true,'1 − loss ratio');
+  });
+
+  addMDTable('Warehouse — Hubs / Sites',
+    ['Site ID','Site Name','Location','Area m²','PP Capacity','CBM Capacity','Status'],
+    [['WH-001','Cairo Central WH','Cairo North',8500,5000,12500,'Active'],
+     ['WH-002','Alexandria Annex','Alexandria',3200,2000,5000,'Active'],
+     ['WH-003','Giza Cold Store','Giza',1800,800,2200,'Active']]);
+
+  addMDTable('Last Mile — Hub Reference',
+    ['Hub ID','Hub Name','City','Area m²','Rack PP','Sort CBM','Avg Distance km'],
+    LM_HUBS.map((h,i)=>[`HB-0${i+1}`,h.name,h.name.split(' ').slice(1).join(' ')||'Cairo',h.area,h.pp,h.cbm,h.dist]));
+
+  addMDTable('Fleet — Equipment Specifications',
+    ['Truck ID','Type','Payload Tonnes','Volume CBM','Fuel L/100km','Age (yrs)','Status'],
+    [['TRK-001','13-Ton Rigid',13,30,28,3.2,'Operational'],['TRK-002','13-Ton Rigid',13,30,28,2.8,'Operational'],
+     ['TRK-003','13-Ton Rigid',13,30,28,4.1,'Operational'],['TRK-004','Heavy Truck 10T',10,40,35,2.1,'Operational'],
+     ['TRK-005','Heavy Truck 10T',10,40,35,1.8,'Operational'],['TRK-006','13-Ton Rigid',13,30,28,5.0,'Maintenance'],
+     ['TRK-007','13-Ton Rigid',13,30,28,3.6,'Operational'],['TRK-008','Heavy Truck 10T',10,40,35,2.5,'Operational']]);
+
+  addMDTable('Rate Cards — Storage & Transport',
+    ['Service','Unit','Rate (EGP)','Currency','Last Updated','Notes'],
+    [['WH Storage — PP','Per PP/Month',45,'EGP','2026-01-01','Fixed rack rate'],
+     ['WH Storage — CBM','Per CBM/Month',18,'EGP','2026-01-01','Variable floor rate'],
+     ['LM Delivery — per shipment','Per Shipment',12,'EGP','2026-03-01','Cairo metro'],
+     ['LM Delivery — CBM','Per CBM',55,'EGP','2026-03-01','Outside metro'],
+     ['TT — per km','Per Km',4.2,'EGP','2026-01-01','13-Ton truck'],
+     ['TT — per tonne-km','Per Tonne-km',1.8,'EGP','2026-01-01','Heavy truck']]);
+}
+
+/* ── DASHBOARD CAP METHOD ── */
+function switchCapMethod(method,btn){
+  _capMethod=method;
+  document.querySelectorAll('.cap-tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderCapMethodTable(method);
+}
+
+function renderCapMethodTable(method){
+  const tbl=document.getElementById('cap-method-tbl');
+  if(!tbl)return;
+  tbl.innerHTML='';
+
+  // Header
+  const thead=document.createElement('thead');
+  const monthCols=MO.map(m=>[m,true]);
+  thead.appendChild(thRow([['Warehouse',false],['Code',false],...monthCols,['Average',true]]));
+  tbl.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+
+  // For each warehouse build one utilization row + one value row
+  WAREHOUSES.forEach(wh=>{
+    const d=WH_DATA[wh.id];
+    let utilArr,capLabel,usedLabel;
+    if(method==='vol'){
+      utilArr=MO.map((_,i)=>d.cbmOcc[i]/d.cbmCap[i]);
+      capLabel='CBM Cap';usedLabel='Occ CBM';
+    } else if(method==='pp'){
+      utilArr=MO.map((_,i)=>d.ppOcc[i]/d.ppCap[i]);
+      capLabel='PP Cap';usedLabel='Occ PP';
+    } else {
+      // revenue
+      utilArr=MO.map((_,i)=>{
+        const num=d.cbmOcc[i]*wh.rateCBM + d.ppOcc[i]*wh.ratePP;
+        const den=wh.cbmCap*wh.rateCBM + wh.ppCap*wh.ratePP;
+        return num/den;
+      });
+      capLabel='Rev Cap (EGP)';usedLabel='Actual Rev';
+    }
+    const avgUtil=utilArr.reduce((s,v)=>s+v,0)/12;
+
+    // Utilization % row
+    const tr=document.createElement('tr');
+    const nameTd=document.createElement('td');nameTd.className='row-label';nameTd.style.fontWeight='600';nameTd.textContent=wh.label;
+    const codeTd=document.createElement('td');codeTd.style.cssText='font-size:10px;color:var(--fgm);white-space:nowrap';codeTd.textContent=wh.code;
+    tr.appendChild(nameTd);tr.appendChild(codeTd);
+    utilArr.forEach((v,mi)=>{
+      const td=document.createElement('td');
+      td.className='cf '+(mi===10?'avg-col ':'')+utilClass(v);
+      td.textContent=fmtP(v);
+      tr.appendChild(td);
+    });
+    // avg
+    const avgTd=document.createElement('td');
+    avgTd.className='cf avg-col '+utilClass(avgUtil);
+    avgTd.textContent=fmtP(avgUtil);
+    tr.appendChild(avgTd);
+    tbody.appendChild(tr);
+  });
+
+  // Totals row
+  const totTr=document.createElement('tr');totTr.style.fontWeight='700';totTr.style.background='var(--total-bg)';
+  const t1=document.createElement('td');t1.className='row-label';t1.textContent='ALL WAREHOUSES';
+  const t2=document.createElement('td');t2.style.cssText='font-size:10px;color:var(--fgm)';t2.textContent='Portfolio Avg';
+  totTr.appendChild(t1);totTr.appendChild(t2);
+  MO.forEach((_,mi)=>{
+    let sum=0;
+    WAREHOUSES.forEach(wh=>{
+      const d=WH_DATA[wh.id];
+      if(method==='vol') sum+=d.cbmOcc[mi]/d.cbmCap[mi];
+      else if(method==='pp') sum+=d.ppOcc[mi]/d.ppCap[mi];
+      else { const num=d.cbmOcc[mi]*wh.rateCBM+d.ppOcc[mi]*wh.ratePP; const den=wh.cbmCap*wh.rateCBM+wh.ppCap*wh.ratePP; sum+=num/den; }
+    });
+    const avg=sum/WAREHOUSES.length;
+    const td=document.createElement('td');td.className='cf '+(mi===10?'avg-col ':'')+utilClass(avg);td.textContent=fmtP(avg);
+    totTr.appendChild(td);
+  });
+  // grand avg
+  let grandSum=0;
+  WAREHOUSES.forEach(wh=>{
+    const d=WH_DATA[wh.id];
+    MO.forEach((_,mi)=>{
+      if(method==='vol') grandSum+=d.cbmOcc[mi]/d.cbmCap[mi];
+      else if(method==='pp') grandSum+=d.ppOcc[mi]/d.ppCap[mi];
+      else { const num=d.cbmOcc[mi]*wh.rateCBM+d.ppOcc[mi]*wh.ratePP; const den=wh.cbmCap*wh.rateCBM+wh.ppCap*wh.ratePP; grandSum+=num/den; }
+    });
+  });
+  const grandAvg=grandSum/(WAREHOUSES.length*12);
+  const gaTd=document.createElement('td');gaTd.className='cf avg-col '+utilClass(grandAvg);gaTd.textContent=fmtP(grandAvg);
+  totTr.appendChild(gaTd);
+  tbody.appendChild(totTr);
+
+  tbl.appendChild(tbody);
+}
+
+/* ── DASHBOARD ── */
+function buildDashboard(){
+  const grid=document.getElementById('kpi-grid');grid.innerHTML='';
+  [
+    {label:'WH Racking Rated Cap',id:'kpi-wh-pp',unit:'PP / month'},
+    {label:'WH Storage Rated Cap',id:'kpi-wh-cbm',unit:'CBM / month'},
+    {label:'WH Headcount Manhours',id:'kpi-wh-hc',unit:'Manhours / month'},
+    {label:'LM Shipments Rated Cap',id:'kpi-lm-shp',unit:'Shipments / month'},
+    {label:'LM CBM Rated Cap',id:'kpi-lm-cbm',unit:'CBM / month'},
+    {label:'TT Fleet CBM Rated Cap',id:'kpi-tt-cbm',unit:'CBM / month'},
+  ].forEach(k=>{
+    const card=document.createElement('div');card.className='kpi-card';
+    card.innerHTML=`<div class="kpi-label">${k.label}</div><div class="kpi-value" id="${k.id}">—</div><div class="kpi-unit">${k.unit}</div>`;
+    grid.appendChild(card);
+  });
+  const tbl=document.getElementById('dash-table');
+  tbl.innerHTML='';
+  const thead=document.createElement('thead');
+  thead.appendChild(thRow([['Business Unit / Resource',false],['Key Metric',true],['Avg Available',true],['Avg Utilised',true],['Utilisation %',true],['Rated Capacity',true],['RAG',true]]));
+  tbl.appendChild(thead);
+  const tbody=document.createElement('tbody');tbody.id='dash-tbody';tbl.appendChild(tbody);
+  // Cap method table initialized after WAREHOUSES data is ready
+  renderCapMethodTable(_capMethod);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER ALL
+═══════════════════════════════════════════════════════ */
+function renderAll(){
+  const h=availH();
+
+  // Assumptions computed
+  const ae=document.getElementById('a-avail');if(ae)ae.textContent=h+' hrs / month';
+
+  // Monthly rows
+  Object.values(_monthlyRows).forEach(secs=>Object.values(secs).forEach(rows=>updateMonthlyRows(rows)));
+
+  // RC KPIs
+  const whPP=rcFor(RC.wh.rackPP),whCBM=rcFor(RC.wh.rackCBM);
+  const whHC=Object.entries(RC.wh).filter(([k])=>k.startsWith('hc')).reduce((s,[,r])=>s+rcFor(r),0);
+  const lmShp=rcFor(RC.lm.routes),lmCBM=rcFor(RC.lm.truckCBM),ttCBM=rcFor(RC.tt.ttCBM);
+  const kv=id=>document.getElementById(id);
+  if(kv('kpi-wh-pp'))kv('kpi-wh-pp').textContent=fmtN(whPP);
+  if(kv('kpi-wh-cbm'))kv('kpi-wh-cbm').textContent=fmtN(whCBM);
+  if(kv('kpi-wh-hc'))kv('kpi-wh-hc').textContent=fmtN(whHC);
+  if(kv('kpi-lm-shp'))kv('kpi-lm-shp').textContent=fmtN(lmShp);
+  if(kv('kpi-lm-cbm'))kv('kpi-lm-cbm').textContent=fmtD(lmCBM);
+  if(kv('kpi-tt-cbm'))kv('kpi-tt-cbm').textContent=fmtN(ttCBM);
+
+  // Cap method table (warehouse utilization by method)
+  renderCapMethodTable(_capMethod);
+
+  // Dashboard table
+  const tbody=document.getElementById('dash-tbody');if(!tbody)return;
+  const dashRows=[
+    {bu:'Warehouse — Racking PP',   metric:'Pallet Positions', avail:RC.wh.rackPP.units,   used:avg(WH.occPP),    util:avg(WH.occPP)/avg(WH.totalPP),                                               rc:whPP},
+    {bu:'Warehouse — CBM',          metric:'Cubic Metres',      avail:RC.wh.rackCBM.units,  used:avg(WH.occCBM),   util:avg(WH.occCBM)/avg(WH.totalCBM),                                             rc:whCBM},
+    {bu:'Warehouse — Docks (IB)',   metric:'Dock Slots',        avail:avg(WH.ibAvail),       used:avg(WH.ibUsed),   util:avg(WH.ibUsed)/avg(WH.ibAvail),                                              rc:rcFor(RC.wh.ibDocks)},
+    {bu:'Warehouse — FLT',          metric:'Equipment',         avail:avg(WH.fltFleet),      used:avg(WH.fltOp),    util:avg(WH.fltOp)/avg(WH.fltFleet),                                             rc:rcFor(RC.wh.flt)},
+    {bu:'Warehouse — Headcount',    metric:'FTE',               avail:avg(Array(12).fill(2+4+6+20+4+4)), used:avg(WH.hcPicker.map((v,i)=>v+WH.hcFltOp[i])), util:0, rc:whHC},
+    {bu:'Last Mile — Shipments',    metric:'Shipments/Month',   avail:lmShp,                 used:avg(Array(12).fill(0).map((_,i)=>LM.hub1Ships[i]+LM.hub2Ships[i]+LM.hub3Ships[i]+LM.hub4Ships[i]+LM.hub5Ships[i])),
+     util:0,rc:lmShp},
+    {bu:'Last Mile — CBM',          metric:'CBM',               avail:avg(LM.truckCBMCap),   used:avg(LM.truckCBMUsed), util:avg(LM.truckCBMUsed)/avg(LM.truckCBMCap),                             rc:lmCBM},
+    {bu:'Last Mile — Tonnes',       metric:'Tonnes',            avail:avg(LM.truckTonCap),   used:avg(LM.truckTonUsed), util:avg(LM.truckTonUsed)/avg(LM.truckTonCap),                             rc:rcFor(RC.lm.truckTon)},
+    {bu:'Fleet — Trucks Operational',metric:'Trucks',           avail:avg(TT.fleetTotal),     used:avg(TT.fleetOnRoad),   util:avg(TT.fleetOnRoad)/avg(TT.fleetTotal),                              rc:ttCBM},
+    {bu:'Fleet — Drivers',          metric:'Drivers',           avail:avg(TT.driversTotal),   used:avg(TT.driversActive), util:avg(TT.driversActive)/avg(TT.driversTotal),                         rc:rcFor(RC.tt.drivers)},
+    {bu:'Fleet — CBM Total Routes', metric:'CBM/Month',         avail:ttCBM,                  used:avg(Array(12).fill(0).map((_,i)=>TT.r1CBM[i]+TT.r2CBM[i]+TT.r3CBM[i]+TT.r4CBM[i]+TT.r5CBM[i])),util:0,rc:ttCBM},
+    {bu:'Fleet — Tonnes Total Routes',metric:'Tonnes/Month',    avail:rcFor(RC.tt.ttTon),     used:avg(Array(12).fill(0).map((_,i)=>TT.r1Ton[i]+TT.r2Ton[i]+TT.r3Ton[i]+TT.r4Ton[i]+TT.r5Ton[i])),util:0,rc:rcFor(RC.tt.ttTon)},
+  ];
+  tbody.innerHTML='';
+  dashRows.forEach(r=>{
+    const tr=document.createElement('tr');
+    const cells=[r.bu,r.metric,fmtN(r.avail),fmtN(r.used)];
+    cells.forEach((v,ci)=>{
+      const td=document.createElement('td');
+      if(ci===0){td.className='row-label';td.style.fontWeight='500';}
+      td.textContent=v;tr.appendChild(td);
+    });
+    const utilTd=document.createElement('td');
+    utilTd.className='cf '+(r.util>0?utilClass(r.util):'');
+    utilTd.textContent=r.util>0?fmtP(r.util):'—';
+    tr.appendChild(utilTd);
+    const rcTd=document.createElement('td');rcTd.className='cf';rcTd.textContent=fmtN(r.rc);tr.appendChild(rcTd);
+    const ragTd=document.createElement('td');ragTd.style.textAlign='center';
+    if(r.util>0){const[cls,lbl]=ragLabel(r.util);const sp=document.createElement('span');sp.className='rag '+cls;sp.textContent=lbl;ragTd.appendChild(sp);}
+    else ragTd.textContent='—';
+    tr.appendChild(ragTd);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   SIDEBAR NAVIGATION
+═══════════════════════════════════════════════════════ */
+document.querySelectorAll('.sb-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    const tab=item.dataset.tab;
+    document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    item.classList.add('active');
+    const pane=document.getElementById('pane-'+tab);
+    if(pane)pane.classList.add('active');
+    // close mobile menu
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sb-overlay').classList.remove('open');
+  });
+});
+
+function toggleMobMenu(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════════ */
+function toggleTheme(){
+  const r=document.documentElement;
+  const cur=r.getAttribute('data-theme');
+  r.setAttribute('data-theme',(!cur||cur==='light')?'dark':'light');
+  try{localStorage.setItem('nacita-theme',r.getAttribute('data-theme'))}catch(e){}
+}
+
+/* ═══════════════════════════════════════════════════════
+   CUSTOMER PLANS & FORECAST
+═══════════════════════════════════════════════════════ */
+
+// localStorage helpers
+function _cpKey(clientId,year){return 'nacita-cp-'+clientId+'-'+year;}
+function _cpFcKey(clientId,year){return 'nacita-fc-'+clientId+'-'+year;}
+
+function getCPlan(clientId,year){
+  try{const r=localStorage.getItem(_cpKey(clientId,year));return r?JSON.parse(r):null;}catch(e){return null;}
+}
+function saveCPlan(clientId,year,data){
+  try{localStorage.setItem(_cpKey(clientId,year),JSON.stringify(data));}catch(e){}
+}
+function getCForecast(clientId,year){
+  try{const r=localStorage.getItem(_cpFcKey(clientId,year));return r?JSON.parse(r):null;}catch(e){return null;}
+}
+function saveCForecast(clientId,year,data){
+  try{localStorage.setItem(_cpFcKey(clientId,year),JSON.stringify(data));}catch(e){}
+}
+
+// Determine the primary volume metric for a client
+function _clientMetric(cl){
+  const vol=CLIENT_VOLS.find(v=>v.id===cl.id);if(!vol)return{key:'ships',label:'Shipments',unit:'shp'};
+  if(vol.cbm.some(v=>v>0))return{key:'cbm',label:'CBM',unit:'CBM'};
+  if(vol.ton.some(v=>v>0))return{key:'ton',label:'Tonnes',unit:'t'};
+  return{key:'ships',label:'Shipments',unit:'shp'};
+}
+
+let _cpView='plan'; // 'plan' | 'forecast'
+let _cpBuFilter='ALL';
+
+function buildCustPlans(){
+  const c=document.getElementById('cp-content');
+  if(!c)return;
+  renderCustPlans();
+}
+
+function renderCustPlans(){
+  const c=document.getElementById('cp-content');
+  if(!c)return;
+  c.innerHTML='';
+  const year=2026;
+  const curMo=10; // Nov = index 10
+
+  // ── Toolbar ──
+  const toolbar=document.createElement('div');toolbar.className='cp-toolbar';
+  toolbar.innerHTML=`
+    <div class="cp-seg">
+      <button class="cp-seg-btn${_cpView==='plan'?' active':''}" onclick="setCPView('plan')">Plan vs Actual</button>
+      <button class="cp-seg-btn${_cpView==='forecast'?' active':''}" onclick="setCPView('forecast')">Forecast</button>
+    </div>
+    <select class="cp-filter" onchange="_cpBuFilter=this.value;renderCustPlans()">
+      <option value="ALL"${_cpBuFilter==='ALL'?' selected':''}>All BUs</option>
+      <option value="WH"${_cpBuFilter==='WH'?' selected':''}>Warehouse (WH)</option>
+      <option value="LM"${_cpBuFilter==='LM'?' selected':''}>Last Mile (LM)</option>
+      <option value="TT"${_cpBuFilter==='TT'?' selected':''}>Tech Trans (TT)</option>
+    </select>
+    <span class="cp-status" id="cp-status"></span>
+    <button class="cp-save-btn" onclick="saveCPAll()">💾 Save Plans</button>`;
+  c.appendChild(toolbar);
+
+  const clients=CLIENTS.filter(cl=>_cpBuFilter==='ALL'||cl.bu===_cpBuFilter);
+
+  if(_cpView==='plan'){
+    _buildPlanVsActual(c,clients,year,curMo);
+  } else {
+    _buildForecast(c,clients,year,curMo);
+  }
+}
+
+function _buildPlanVsActual(c,clients,year,curMo){
+  // Header: Client | BU | Jan Plan | Jan Act | Jan Var% | Feb ... | Total Plan | Total Act | Var%
+  const wrap=document.createElement('div');wrap.className='fc-tbl-wrap';
+  const secHd=document.createElement('div');secHd.className='fc-section-hd';
+  secHd.innerHTML='📋 Monthly Plan vs Actual — '+year+' &nbsp;<span style="font-weight:400;color:var(--fg2)">Edit Plan cells · Actual = Client Volumes data</span>';
+  wrap.appendChild(secHd);
+
+  const scroll=document.createElement('div');scroll.style.overflowX='auto';
+  const tbl=document.createElement('table');tbl.className='fc-table';
+
+  // Build header
+  const thead=document.createElement('thead');
+  const tr1=document.createElement('tr');
+  tr1.innerHTML=`<th class="sticky-col" rowspan="2">Client</th><th rowspan="2">BU</th><th rowspan="2">Metric</th>`+
+    MO.map((m,i)=>`<th colspan="3"${i===curMo?' style="background:color-mix(in srgb,var(--navy) 12%,var(--surface))"':''}>${m}</th>`).join('')+
+    `<th colspan="3">Total / Avg</th>`;
+  thead.appendChild(tr1);
+  const tr2=document.createElement('tr');
+  tr2.innerHTML=Array(13).fill(0).map((_,i)=>
+    `<th>Plan</th><th>Act</th><th>Var%</th>`
+  ).join('');
+  thead.appendChild(tr2);
+  tbl.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+  clients.forEach(cl=>{
+    const vol=CLIENT_VOLS.find(v=>v.id===cl.id);if(!vol)return;
+    const metric=_clientMetric(cl);
+    const actuals=vol[metric.key]; // 12-element array
+    const saved=getCPlan(cl.id,year);
+    // Plan: saved override or default to actuals * 1.05 (5% over target)
+    const plan=saved?saved.plan:actuals.map(v=>Math.round(v*1.05));
+
+    const tr=document.createElement('tr');
+    // sticky name cell
+    const tdName=document.createElement('td');tdName.className='sticky-col';
+    tdName.innerHTML=`${cl.name}<br><small style="font-weight:400;color:var(--fgm)">${cl.id}</small>`;
+    tr.appendChild(tdName);
+    const tdBu=document.createElement('td');tdBu.style.textAlign='center';
+    tdBu.innerHTML=`<span class="tag tag-${cl.bu.toLowerCase()}">${cl.bu}</span>`;
+    tr.appendChild(tdBu);
+    const tdM=document.createElement('td');tdM.className='row-metric';tdM.textContent=metric.label;
+    tr.appendChild(tdM);
+
+    let totalPlan=0,totalAct=0;
+    MO.forEach((mo,mi)=>{
+      const p=plan[mi];
+      const a=actuals[mi];
+      totalPlan+=p;totalAct+=a;
+      const v=p>0?((a-p)/p*100):0;
+      const vClass=Math.abs(v)<5?'var-neu':v>0?'var-pos':'var-neg';
+      const isCur=mi===curMo;
+
+      // Plan input cell
+      const tdP=document.createElement('td');if(isCur)tdP.className='cur-mo';
+      const inp=document.createElement('input');inp.type='number';inp.className='fc-inp';
+      inp.value=p;inp.min=0;inp.dataset.cl=cl.id;inp.dataset.mo=mi;inp.dataset.year=year;
+      inp.addEventListener('input',function(){
+        this.classList.add('edited');
+        plan[this.dataset.mo]=parseFloat(this.value)||0;
+        // update var cell
+        const par=this.closest('tr');
+        const cells=par.querySelectorAll('td');
+        // recalc this month var on the fly
+        _refreshPlanRow(par,plan,actuals,curMo);
+      });
+      tdP.appendChild(inp);tr.appendChild(tdP);
+
+      // Actual cell
+      const tdA=document.createElement('td');if(isCur)tdA.className='cur-mo';
+      tdA.textContent=metric.key==='cbm'||metric.key==='ton'?a.toLocaleString('en',{maximumFractionDigits:0}):a.toLocaleString();
+      tr.appendChild(tdA);
+
+      // Variance cell
+      const tdV=document.createElement('td');tdV.className=(isCur?'cur-mo ':'')+vClass;
+      tdV.dataset.varCell='1';
+      tdV.textContent=p>0?(v>0?'+':'')+v.toFixed(1)+'%':'—';
+      tr.appendChild(tdV);
+    });
+
+    // Totals
+    const totVar=totalPlan>0?((totalAct-totalPlan)/totalPlan*100):0;
+    const totVClass=Math.abs(totVar)<5?'var-neu':totVar>0?'var-pos':'var-neg';
+    const tdTP=document.createElement('td');tdTP.style.fontWeight='700';
+    tdTP.textContent=totalPlan.toLocaleString();tr.appendChild(tdTP);
+    const tdTA=document.createElement('td');tdTA.style.fontWeight='700';
+    tdTA.textContent=totalAct.toLocaleString();tr.appendChild(tdTA);
+    const tdTV=document.createElement('td');tdTV.className=totVClass;tdTV.style.fontWeight='700';
+    tdTV.textContent=totalPlan>0?(totVar>0?'+':'')+totVar.toFixed(1)+'%':'—';tr.appendChild(tdTV);
+
+    // Store plan ref on row for refresh
+    tr._clientPlan=plan;tr._clientId=cl.id;tr._clientYear=year;
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  scroll.appendChild(tbl);wrap.appendChild(scroll);c.appendChild(wrap);
+
+  // Legend
+  const leg=document.createElement('div');leg.style.cssText='font:11px Inter,sans-serif;color:var(--fgm);margin-top:8px;display:flex;gap:16px;flex-wrap:wrap';
+  leg.innerHTML='<span class="var-pos">▲ Positive variance (actual > plan)</span><span class="var-neg">▼ Negative variance (actual &lt; plan)</span><span>Plan defaults = prior actuals × 1.05 · Edit any Plan cell then Save Plans</span>';
+  c.appendChild(leg);
+}
+
+function _refreshPlanRow(tr,plan,actuals,curMo){
+  // Re-render variance cells after plan edit without full rebuild
+  let totalPlan=0,totalAct=0;
+  plan.forEach((p,mi)=>{totalPlan+=p;totalAct+=actuals[mi];});
+  const inputs=tr.querySelectorAll('.fc-inp');
+  inputs.forEach((inp,mi)=>{
+    const p=plan[mi],a=actuals[mi];
+    const varTd=inp.closest('td').nextElementSibling?.nextElementSibling;
+    if(!varTd)return;
+    const v=p>0?((a-p)/p*100):0;
+    varTd.textContent=p>0?(v>0?'+':'')+v.toFixed(1)+'%':'—';
+    varTd.className=(mi===curMo?'cur-mo ':'')+(Math.abs(v)<5?'var-neu':v>0?'var-pos':'var-neg');
+  });
+}
+
+function _buildForecast(c,clients,year,curMo){
+  const fcYear=year; // We show Nov–Dec current + Jan–Dec next year (14 months forward)
+  const wrap=document.createElement('div');wrap.className='fc-tbl-wrap';
+  const secHd=document.createElement('div');secHd.className='fc-section-hd';
+  secHd.innerHTML='🔮 Forward Forecast — Nov 2026 to Dec 2027 &nbsp;<span style="font-weight:400;color:var(--fg2)">Set monthly growth % per client · Forecast = Last Actual × (1 + growth)</span>';
+  wrap.appendChild(secHd);
+
+  // Build 14-month header: Nov 26, Dec 26, Jan 27 … Dec 27
+  const fcMos=[];
+  for(let i=curMo;i<12;i++)fcMos.push({mo:i,yr:2026,label:MO[i]+"'26"});
+  for(let i=0;i<12;i++)fcMos.push({mo:i,yr:2027,label:MO[i]+"'27"});
+
+  const scroll=document.createElement('div');scroll.style.overflowX='auto';
+  const tbl=document.createElement('table');tbl.className='fc-table';
+  const thead=document.createElement('thead');
+  const tr1=document.createElement('tr');
+  tr1.innerHTML=`<th class="sticky-col">Client</th><th>BU</th><th>Metric</th>`+
+    fcMos.map(m=>`<th>${m.label}</th>`).join('')+`<th>Avg/Mo</th>`;
+  thead.appendChild(tr1);tbl.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+  clients.forEach(cl=>{
+    const vol=CLIENT_VOLS.find(v=>v.id===cl.id);if(!vol)return;
+    const metric=_clientMetric(cl);
+    const actuals=vol[metric.key];
+    const lastAct=actuals[curMo]||actuals.filter(v=>v>0).slice(-1)[0]||0;
+    const savedFc=getCForecast(cl.id,fcYear);
+    // Growth rate per forward month: default 2% month-on-month
+    const growth=savedFc?savedFc.growth:Array(14).fill(2);
+
+    // Growth rate input row
+    const trG=document.createElement('tr');trG.className='fc-growth-row';
+    const tdGN=document.createElement('td');tdGN.className='sticky-col';
+    tdGN.innerHTML=`${cl.name}<br><small style="font-weight:400;color:var(--fgm)">${cl.id}</small>`;
+    trG.appendChild(tdGN);
+    const tdGBu=document.createElement('td');tdGBu.style.textAlign='center';
+    tdGBu.innerHTML=`<span class="tag tag-${cl.bu.toLowerCase()}">${cl.bu}</span>`;
+    trG.appendChild(tdGBu);
+    const tdGM=document.createElement('td');tdGM.className='row-metric';tdGM.textContent='Growth %';
+    trG.appendChild(tdGM);
+
+    growth.forEach((g,gi)=>{
+      const td=document.createElement('td');
+      const inp=document.createElement('input');inp.type='number';inp.className='fc-inp';
+      inp.value=g;inp.step='0.1';inp.dataset.cl=cl.id;inp.dataset.gi=gi;inp.dataset.year=fcYear;
+      inp.style.width='52px';
+      inp.addEventListener('input',function(){
+        this.classList.add('edited');
+        growth[parseInt(this.dataset.gi)]=parseFloat(this.value)||0;
+        _refreshFcRow(trG.nextElementSibling,lastAct,growth);
+      });
+      td.appendChild(inp);trG.appendChild(td);
+    });
+    trG.appendChild(document.createElement('td'));// avg placeholder
+    trG._clientGrowth=growth;trG._clientId=cl.id;trG._clientYear=fcYear;
+    tbody.appendChild(trG);
+
+    // Forecast value row
+    const trF=document.createElement('tr');
+    const tdFN=document.createElement('td');tdFN.className='sticky-col';
+    tdFN.textContent='';trF.appendChild(tdFN);
+    document.createElement('td');// bu placeholder not needed — spanned visually by growth row above
+    const tdFBu=document.createElement('td');trF.appendChild(tdFBu);
+    const tdFM=document.createElement('td');tdFM.className='row-metric';tdFM.textContent=metric.label+' (fc)';
+    trF.appendChild(tdFM);
+
+    let running=lastAct;let total=0;
+    growth.forEach(g=>{
+      running=running*(1+g/100);
+      total+=running;
+      const td=document.createElement('td');td.dataset.fcVal='1';
+      td.textContent=Math.round(running).toLocaleString();
+      trF.appendChild(td);
+    });
+    const avgTd=document.createElement('td');avgTd.style.fontWeight='700';
+    avgTd.textContent=Math.round(total/growth.length).toLocaleString();
+    trF.appendChild(avgTd);trF._lastAct=lastAct;
+    tbody.appendChild(trF);
+  });
+  tbl.appendChild(tbody);
+  scroll.appendChild(tbl);wrap.appendChild(scroll);c.appendChild(wrap);
+
+  const leg=document.createElement('div');leg.style.cssText='font:11px Inter,sans-serif;color:var(--fgm);margin-top:8px';
+  leg.textContent='Growth % is applied month-on-month compounding from last actual. Edit growth rates per client, then Save Plans.';
+  c.appendChild(leg);
+}
+
+function _refreshFcRow(trF,lastAct,growth){
+  if(!trF)return;
+  const fcCells=trF.querySelectorAll('td[data-fc-val]');
+  let running=lastAct,total=0;
+  growth.forEach((g,i)=>{
+    running=running*(1+g/100);total+=running;
+    if(fcCells[i])fcCells[i].textContent=Math.round(running).toLocaleString();
+  });
+  const avgTd=trF.querySelector('td:last-child');
+  if(avgTd)avgTd.textContent=Math.round(total/growth.length).toLocaleString();
+}
+
+function setCPView(view){
+  _cpView=view;
+  renderCustPlans();
+}
+
+function saveCPAll(){
+  const statusEl=document.getElementById('cp-status');
+  let saved=0;
+  if(_cpView==='plan'){
+    // Collect all fc-inp values grouped by client
+    const byClient={};
+    document.querySelectorAll('#cp-content .fc-inp').forEach(inp=>{
+      const cl=inp.dataset.cl,mo=parseInt(inp.dataset.mo),yr=inp.dataset.year;
+      if(!byClient[cl])byClient[cl]={plan:Array(12).fill(0),year:yr};
+      byClient[cl].plan[mo]=parseFloat(inp.value)||0;
+    });
+    Object.entries(byClient).forEach(([cl,data])=>{
+      saveCPlan(cl,data.year,{plan:data.plan});saved++;
+    });
+  } else {
+    // Forecast: collect growth per client
+    const byClient={};
+    document.querySelectorAll('#cp-content .fc-growth-row .fc-inp').forEach(inp=>{
+      const cl=inp.dataset.cl,gi=parseInt(inp.dataset.gi),yr=inp.dataset.year;
+      if(!byClient[cl])byClient[cl]={growth:Array(14).fill(2),year:yr};
+      byClient[cl].growth[gi]=parseFloat(inp.value)||0;
+    });
+    Object.entries(byClient).forEach(([cl,data])=>{
+      saveCForecast(cl,data.year,{growth:data.growth});saved++;
+    });
+  }
+  document.querySelectorAll('#cp-content .fc-inp').forEach(inp=>inp.classList.remove('edited'));
+  if(statusEl){
+    statusEl.textContent=`✓ Saved ${saved} client(s)`;statusEl.className='cp-status ok';
+    setTimeout(()=>{if(statusEl){statusEl.textContent='';statusEl.className='cp-status';}},3000);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   DAILY DATA ENTRY
+═══════════════════════════════════════════════════════ */
+function _diKey(whId,dateStr){return 'nacita-daily-'+whId+'-'+dateStr;}
+
+function getDailyEntry(whId,dateStr){
+  try{
+    const raw=localStorage.getItem(_diKey(whId,dateStr));
+    return raw?JSON.parse(raw):null;
+  }catch(e){return null;}
+}
+
+function saveDailyEntry(whId,dateStr,data){
+  try{localStorage.setItem(_diKey(whId,dateStr),JSON.stringify(data));}catch(e){}
+}
+
+function _todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function buildDailyInput(){
+  const c=document.getElementById('di-content');
+  if(!c)return;
+
+  // Toolbar with date picker
+  const today=_todayStr();
+  c.innerHTML=`<div class="di-wrap">
+<div class="di-toolbar">
+  <label>Date:</label>
+  <input type="date" class="di-date-pick" id="di-date" value="${today}" max="${today}">
+  <span class="di-status" id="di-status"></span>
+  <button class="di-save-btn" onclick="saveDailyAll()">💾 Save All</button>
+</div>
+<div style="overflow-x:auto">
+<table class="di-table" id="di-table">
+<thead><tr>
+  <th>Warehouse</th>
+  <th>IB Trucks<br><small style="font-weight:400">plan</small></th>
+  <th>OB Orders<br><small style="font-weight:400">plan</small></th>
+  <th>PP Occupied<br><small style="font-weight:400">cap</small></th>
+  <th>CBM Occ.<br><small style="font-weight:400">cap</small></th>
+  <th>FLT Op.<br><small style="font-weight:400">total</small></th>
+  <th>RT Op.<br><small style="font-weight:400">total</small></th>
+  <th>HC Present<br><small style="font-weight:400">total</small></th>
+  <th>IB Docks<br><small style="font-weight:400">used</small></th>
+  <th>OB Docks<br><small style="font-weight:400">used</small></th>
+</tr></thead>
+<tbody id="di-tbody"></tbody>
+</table>
+</div>
+</div>`;
+
+  renderDailyInputTable();
+
+  // Re-render on date change
+  document.getElementById('di-date').addEventListener('change',renderDailyInputTable);
+}
+
+function renderDailyInputTable(){
+  const dateEl=document.getElementById('di-date');
+  if(!dateEl)return;
+  const dateStr=dateEl.value;
+  const tbody=document.getElementById('di-tbody');
+  if(!tbody)return;
+
+  tbody.innerHTML='';
+  WAREHOUSES.forEach(wh=>{
+    const saved=getDailyEntry(wh.id,dateStr)||{};
+    const totalHC=Object.values(wh.hc).reduce((s,v)=>s+v,0);
+    const fields=[
+      {key:'ibTrucks', plan:wh.ibDocks*8,  cap:wh.ibDocks,  ph:'0–'+(wh.ibDocks*8)},
+      {key:'obOrders', plan:wh.obDocks*12, cap:wh.obDocks*12,ph:'0–'+(wh.obDocks*12)},
+      {key:'ppOcc',    plan:'',            cap:wh.ppCap,     ph:'0–'+wh.ppCap},
+      {key:'cbmOcc',   plan:'',            cap:wh.cbmCap,    ph:'0–'+wh.cbmCap},
+      {key:'fltOp',    plan:'',            cap:wh.flt,       ph:'0–'+wh.flt},
+      {key:'rtOp',     plan:'',            cap:wh.rt,        ph:'0–'+wh.rt},
+      {key:'hcPres',   plan:'',            cap:totalHC,      ph:'0–'+totalHC},
+      {key:'ibDocks',  plan:'',            cap:wh.ibDocks,   ph:'0–'+wh.ibDocks},
+      {key:'obDocks',  plan:'',            cap:wh.obDocks,   ph:'0–'+wh.obDocks},
+    ];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span style="font-size:10px;color:var(--fg2)">${wh.code}</span><br>${wh.label}</td>`+
+      fields.map(f=>{
+        const val=saved[f.key]!==undefined?saved[f.key]:'';
+        const hasSaved=saved[f.key]!==undefined;
+        return `<td><input type="number" class="di-inp${hasSaved?' saved':''}" min="0" max="${f.cap}" placeholder="${f.ph}" value="${val}" data-wh="${wh.id}" data-key="${f.key}" data-date="${dateStr}" step="1">`+
+          (f.plan!==''?`<span class="di-cap-hint">plan: ${f.plan}</span>`:'')+
+          `</td>`;
+      }).join('');
+    tbody.appendChild(tr);
+  });
+
+  // Live save-on-blur for each input
+  tbody.querySelectorAll('.di-inp').forEach(inp=>{
+    inp.addEventListener('blur',function(){
+      const whId=this.dataset.wh;
+      const key=this.dataset.key;
+      const date=this.dataset.date;
+      const val=this.value.trim();
+      if(val==='')return;
+      const existing=getDailyEntry(whId,date)||{};
+      existing[key]=Number(val);
+      saveDailyEntry(whId,date,existing);
+      this.classList.add('saved');
+    });
+  });
+}
+
+function saveDailyAll(){
+  const dateEl=document.getElementById('di-date');
+  const statusEl=document.getElementById('di-status');
+  if(!dateEl)return;
+  const dateStr=dateEl.value;
+
+  // Collect all inputs for this date
+  const byWh={};
+  document.querySelectorAll('#di-tbody .di-inp').forEach(inp=>{
+    const val=inp.value.trim();
+    if(val==='')return;
+    const whId=inp.dataset.wh;
+    if(!byWh[whId])byWh[whId]={};
+    byWh[whId][inp.dataset.key]=Number(val);
+  });
+
+  let saved=0;
+  Object.entries(byWh).forEach(([whId,data])=>{
+    const existing=getDailyEntry(whId,dateStr)||{};
+    Object.assign(existing,data);
+    saveDailyEntry(whId,dateStr,existing);
+    saved++;
+  });
+
+  document.querySelectorAll('#di-tbody .di-inp').forEach(inp=>{
+    if(inp.value.trim()!=='')inp.classList.add('saved');
+  });
+
+  if(statusEl){
+    statusEl.textContent=saved>0?`✓ Saved ${saved} warehouse(s) for ${dateStr}`:'Nothing to save (all fields empty)';
+    statusEl.className='di-status ok';
+    setTimeout(()=>{if(statusEl)statusEl.textContent='';statusEl.className='di-status';},3500);
+  }
+
+  // Update warehouse detail if visible
+  const activeWh=document.querySelector('.wh-pill.active');
+  if(activeWh)renderWhDetail(activeWh.dataset.id);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════
+   DATA PUBLISHING  (data.json  ⇄  app state)
+═══════════════════════════════════════════════════════ */
+const NC_MODE=(window.NACITA_MODE||'edit');
+const NC_SNAP_KEY='nacita-snapshot', NC_DIRTY_KEY='nacita-dirty';
+function _ncRefs(){return {WAREHOUSES,WH_DATA,A,RC,UD,WH,LM,LM_HUBS,TT,TT_ROUTES,CLIENTS,CLIENT_VOLS};}
+function _ncClean(k,v){if(typeof k==='string'&&k.charAt(0)==='_')return undefined;if(typeof Node!=='undefined'&&v instanceof Node)return undefined;return v;}
+function _ncMerge(t,s){
+  if(Array.isArray(t)&&Array.isArray(s)){
+    for(let i=0;i<s.length;i++){
+      if(t[i]&&s[i]&&typeof t[i]==='object'&&typeof s[i]==='object'&&Array.isArray(t[i])===Array.isArray(s[i]))_ncMerge(t[i],s[i]);
+      else t[i]=s[i];
+    }
+    t.length=s.length;return;
+  }
+  for(const k in s){
+    if(t[k]&&s[k]&&typeof t[k]==='object'&&typeof s[k]==='object'&&Array.isArray(t[k])===Array.isArray(s[k]))_ncMerge(t[k],s[k]);
+    else t[k]=s[k];
+  }
+}
+function _ncLS(){try{return window.localStorage}catch(e){return null}}
+function _ncStoreKeys(){const ls=_ncLS(),out=[];if(!ls)return out;try{for(let i=0;i<ls.length;i++){const k=ls.key(i);if(k&&k.indexOf('nacita-')===0&&k!=='nacita-theme'&&k!==NC_SNAP_KEY&&k!==NC_DIRTY_KEY&&k.indexOf('nacita-daily')!==0&&k!=='nacita-editor')out.push(k)}}catch(e){}return out;}
+function nacitaSnapshot(){
+  const ls=_ncLS(),store={};
+  _ncStoreKeys().forEach(k=>{try{store[k]=ls.getItem(k)}catch(e){}});
+  return {app:'nacita-capacity',version:1,savedAt:new Date().toISOString(),
+          state:JSON.parse(JSON.stringify(_ncRefs(),_ncClean)),store};
+}
+function _ncApply(snap,writeStore){
+  if(!snap||snap.app!=='nacita-capacity'||!snap.state)throw new Error('Not a NACITA data file');
+  const refs=_ncRefs();
+  Object.keys(refs).forEach(k=>{if(snap.state[k]!==undefined)_ncMerge(refs[k],snap.state[k])});
+  if(writeStore&&snap.store){
+    const ls=_ncLS();if(ls){
+      _ncStoreKeys().forEach(k=>{try{ls.removeItem(k)}catch(e){}});
+      Object.entries(snap.store).forEach(([k,v])=>{try{ls.setItem(k,v)}catch(e){}});
+    }
+  }
+}
+async function _ncFetchPublished(){
+  const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}
+function _ncFmt(iso){try{return new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return iso}}
+function _ncStatus(text,cls){const el=document.getElementById('nc-status');if(el){el.textContent=text;el.className='hdr-pill'+(cls?' '+cls:'')}}
+function _ncToast(msg){let t=document.getElementById('nc-toast');if(!t){t=document.createElement('div');t.id='nc-toast';document.body.appendChild(t)}t.textContent=msg;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>{t.hidden=true},4500)}
+let _ncSaveT=null;
+function _ncAutosave(){
+  clearTimeout(_ncSaveT);
+  _ncSaveT=setTimeout(()=>{
+    const ls=_ncLS();if(!ls)return;
+    try{ls.setItem(NC_SNAP_KEY,JSON.stringify(nacitaSnapshot()));ls.setItem(NC_DIRTY_KEY,'1');_ncStatus('● Changes not published','dirty')}catch(e){_ncStatus('⚠ Could not save in this browser','dirty')}
+  },500);
+}
+function ncExport(){
+  const snap=nacitaSnapshot();
+  const blob=new Blob([JSON.stringify(snap,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.json';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+  const ls=_ncLS();try{ls&&ls.setItem(NC_SNAP_KEY,JSON.stringify(snap));ls&&ls.removeItem(NC_DIRTY_KEY)}catch(e){}
+  _ncStatus('✓ Exported '+_ncFmt(snap.savedAt)+' — upload to GitHub','ok');
+  _ncToast('data.json downloaded. Upload it to your GitHub repository to publish.');
+}
+function ncImportClick(){document.getElementById('nc-import').click()}
+function _ncOnImport(ev){
+  const f=ev.target.files&&ev.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{const snap=JSON.parse(rd.result);if(snap.app!=='nacita-capacity')throw new Error('wrong file');
+      const ls=_ncLS();if(!ls)throw new Error('storage blocked');
+      _ncApply({app:snap.app,state:{},store:snap.store},true);
+      ls.setItem(NC_SNAP_KEY,JSON.stringify(snap));ls.setItem(NC_DIRTY_KEY,'1');location.reload();
+    }catch(e){_ncToast('Import failed: this is not a NACITA data.json file.')}
+  };
+  rd.readAsText(f);ev.target.value='';
+}
+function ncReset(){
+  if(!window.confirm('Discard all edits in this browser and reload the published data.json?'))return;
+  const ls=_ncLS();if(ls){_ncStoreKeys().forEach(k=>{try{ls.removeItem(k)}catch(e){}});try{ls.removeItem(NC_SNAP_KEY);ls.removeItem(NC_DIRTY_KEY)}catch(e){}}
+  location.reload();
+}
+
+/* ── LIVE DAILY DATA (Google Sheet via Apps Script) ── */
+let NC_CFG={};
+const NC_FIELDS=['ibTrucks','obOrders','ppOcc','cbmOcc','fltOp','rtOp','hcPres','ibDocks','obDocks'];
+let _ncDailyMeta={};
+async function _ncLoadConfig(){try{const r=await fetch('config.json?t='+Date.now(),{cache:'no-store'});if(r.ok)NC_CFG=await r.json()}catch(e){}}
+function _ncApi(){return String(NC_CFG.dailyApi||'').trim()}
+function _ncNeedPass(){return NC_CFG.requirePasscode===true}
+function _ncPending(){try{return new Set(JSON.parse(localStorage.getItem('nacita-daily-pending')||'[]'))}catch(e){return new Set()}}
+function _ncSetPending(set){try{localStorage.setItem('nacita-daily-pending',JSON.stringify([...set]))}catch(e){}}
+function _ncEditor(){try{return JSON.parse(localStorage.getItem('nacita-editor')||'{}')}catch(e){return {}}}
+async function ncPullDaily(){
+  const url=_ncApi();if(!url)return false;
+  try{
+    const r=await fetch(url+(url.indexOf('?')>-1?'&':'?')+'action=list&t='+Date.now());
+    const j=await r.json();if(!j||!j.ok||!Array.isArray(j.entries))return false;
+    const ls=_ncLS();if(!ls)return false;
+    const pend=_ncPending();
+    for(let i=ls.length-1;i>=0;i--){const k=ls.key(i);if(k&&/^nacita-daily-WH/.test(k)&&!pend.has(k))ls.removeItem(k)}
+    _ncDailyMeta={};
+    j.entries.forEach(en=>{
+      if(!en||!en.whId||!en.date)return;
+      const key='nacita-daily-'+en.whId+'-'+en.date;
+      if(!pend.has(key)){const o={};NC_FIELDS.forEach(f=>{if(en[f]!==undefined&&en[f]!==null&&en[f]!=='')o[f]=Number(en[f])});ls.setItem(key,JSON.stringify(o))}
+      const m=_ncDailyMeta[en.date];if(en.updatedAt&&(!m||en.updatedAt>m.at))_ncDailyMeta[en.date]={at:en.updatedAt,by:en.updatedBy||''};
+    });
+    return true;
+  }catch(e){return false}
+}
+async function ncPushDaily(dateStr){
+  const ed=_ncEditor();
+  const entries=WAREHOUSES.map(wh=>{const e=getDailyEntry(wh.id,dateStr);return e?Object.assign({whId:wh.id},e):null}).filter(Boolean);
+  const r=await fetch(_ncApi(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({passcode:ed.passcode||'',editor:ed.name||'',date:dateStr,entries})});
+  const j=await r.json();if(!j.ok)throw new Error(j.error||'failed');return j;
+}
+function _ncSync(text,cls){const el=document.getElementById('nc-di-sync');if(el){el.textContent=text;el.className=cls||''}}
+function _ncRenderMeta(){
+  const el=document.getElementById('nc-di-meta');const d=document.getElementById('di-date');if(!el||!d)return;
+  const m=_ncDailyMeta[d.value];
+  el.textContent=!_ncApi()?'Online store not connected yet — entries stay in this browser.':m?('Last saved online: '+(m.by||'unknown')+' · '+_ncFmt(m.at)):'Nothing saved online for this date yet.';
+}
+function _ncEdBar(){
+  const wrap=document.querySelector('#di-content .di-wrap');if(!wrap||document.getElementById('nc-ed-bar'))return;
+  const ed=_ncEditor();
+  const bar=document.createElement('div');bar.className='nc-ed-bar';bar.id='nc-ed-bar';
+  bar.innerHTML='<span>Your name</span><input id="nc-ed-name" maxlength="60" autocomplete="name" placeholder="e.g. Ahmed – Z28">'+
+    (_ncNeedPass()?'<span>Passcode</span><input id="nc-ed-pass" type="password" autocomplete="current-password" placeholder="from your manager">':'')+
+    '<button type="button" id="nc-ed-save">Remember me</button><span id="nc-di-sync"></span><span class="nc-meta" id="nc-di-meta"></span>';
+  wrap.insertBefore(bar,wrap.children[1]||null);
+  document.getElementById('nc-ed-name').value=ed.name||'';
+  const pwEl=document.getElementById('nc-ed-pass');if(pwEl)pwEl.value=ed.passcode||'';
+  document.getElementById('nc-ed-save').onclick=()=>{
+    const pwI=document.getElementById('nc-ed-pass');
+    const o={name:document.getElementById('nc-ed-name').value.trim(),passcode:pwI?pwI.value:''};
+    try{localStorage.setItem('nacita-editor',JSON.stringify(o))}catch(e){}
+    const okk=o.name&&(o.passcode||!_ncNeedPass());
+    _ncSync(okk?'✓ Saved on this device':(_ncNeedPass()?'Enter both name and passcode':'Enter your name'),okk?'ok':'err');
+  };
+  _ncRenderMeta();
+}
+function _ncWireDaily(){
+  _ncEdBar();
+  const pane=document.getElementById('di-content');if(!pane)return;
+  // typing a value marks that warehouse/date as waiting to be sent
+  pane.addEventListener('focusout',e=>{
+    const t=e.target;if(!t||!t.classList||!t.classList.contains('di-inp')||t.value.trim()==='')return;
+    const p=_ncPending();p.add('nacita-daily-'+t.dataset.wh+'-'+t.dataset.date);_ncSetPending(p);
+    if(_ncApi())_ncSync('● Not sent yet — press Save All','busy');
+  });
+  const d=document.getElementById('di-date');
+  if(d)d.addEventListener('change',async()=>{_ncSync('');_ncRenderMeta();if(await ncPullDaily()){renderDailyInputTable();_ncRenderMeta()}});
+  // replace Save All: local save (original) + send online
+  const local=saveDailyAll;
+  saveDailyAll=async function(){
+    local();
+    const dateStr=document.getElementById('di-date').value;
+    if(!_ncApi()){_ncSync('Saved in this browser only (online store not connected)','err');return}
+    const n=document.getElementById('nc-ed-name'),pw=document.getElementById('nc-ed-pass');
+    const ed={name:(n&&n.value.trim())||'',passcode:(pw&&pw.value)||''};
+    if(!ed.name||(_ncNeedPass()&&!ed.passcode)){_ncSync(_ncNeedPass()?'Enter your name and passcode, then Save All again':'Enter your name, then Save All again','err');if(n)n.focus();return}
+    try{localStorage.setItem('nacita-editor',JSON.stringify(ed))}catch(e){}
+    _ncSync('Saving online…','busy');
+    try{
+      const j=await ncPushDaily(dateStr);
+      const p=_ncPending();[...p].forEach(k=>{if(k.endsWith('-'+dateStr))p.delete(k)});_ncSetPending(p);
+      _ncDailyMeta[dateStr]={at:j.updatedAt||new Date().toISOString(),by:ed.name};
+      _ncSync('✓ Saved online ('+(j.saved||0)+' warehouses) — visible to everyone','ok');_ncRenderMeta();
+    }catch(e){
+      _ncSync(String(e.message).indexOf('passcode')>-1?'✗ Wrong passcode — not saved online':'✗ Could not reach the online store — kept in this browser, press Save All again','err');
+    }
+  };
+}
+
+function _ncLockInputs(root){
+  (root||document).querySelectorAll(NC_MODE==='daily'?'input.ci,input.fc-inp':'input.ci,input.fc-inp,input.di-inp').forEach(i=>{i.readOnly=true;i.tabIndex=-1});
+}
+async function ncLoadData(){
+  const ls=_ncLS();
+  await _ncLoadConfig();
+  const live=await ncPullDaily();
+  const liveTxt=live?' · daily actuals live':'';
+  if(NC_MODE==='view'||NC_MODE==='daily'){
+    document.body.classList.add('view-mode');
+    if(NC_MODE==='daily')document.body.classList.add('daily-mode');
+    const lbl=NC_MODE==='daily'?'Editor · daily data entry':'View only';
+    try{const snap=await _ncFetchPublished();_ncApply(snap,true);_ncStatus(lbl+' · Plan updated '+_ncFmt(snap.savedAt)+liveTxt,NC_MODE==='daily'?'ok':'')}
+    catch(e){_ncStatus(lbl+' · built-in data'+liveTxt)}
+    return;
+  }
+  // edit mode: local working copy first, else the published file
+  let local=null;try{local=ls&&JSON.parse(ls.getItem(NC_SNAP_KEY)||'null')}catch(e){}
+  if(local){
+    try{_ncApply(local,false);
+      const dirty=ls.getItem(NC_DIRTY_KEY);
+      _ncStatus(dirty?'● Changes not published':'✓ In sync with last export',dirty?'dirty':'ok');return;}catch(e){}
+  }
+  try{const snap=await _ncFetchPublished();_ncApply(snap,true);_ncStatus('✓ Loaded published data · '+_ncFmt(snap.savedAt),'ok')}
+  catch(e){_ncStatus('Built-in data (no data.json found)')}
+}
+function _ncWire(){
+  if(NC_MODE!=='view')_ncWireDaily();
+  if(NC_MODE==='daily'){
+    const t=document.querySelector('.sb-item[data-tab="dailyinput"]');if(t)t.click();
+  }
+  if(NC_MODE==='view'||NC_MODE==='daily'){
+    // lock every editable cell, including ones rebuilt later
+    _ncLockInputs();
+    const mo=new MutationObserver(()=>_ncLockInputs());
+    mo.observe(document.getElementById('content'),{childList:true,subtree:true});
+    // the daily-entry tab is hidden; never leave it active
+    return;
+  }
+  const imp=document.getElementById('nc-import');if(imp)imp.addEventListener('change',_ncOnImport);
+  const content=document.getElementById('content');
+  ['input','change'].forEach(ev=>content.addEventListener(ev,e=>{
+    const t=e.target;if(!t||t.tagName!=='INPUT'&&t.tagName!=='SELECT')return;
+    if(t.id==='di-date'||t.classList.contains('cp-filter'))return; // navigation, not data
+    _ncAutosave();
+  }));
+  content.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.cp-save-btn,.di-save-btn');if(b)_ncAutosave()});
+}
+
+(async function init(){
+  try{const t=localStorage.getItem('nacita-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}
+  await ncLoadData();
+  buildDashboard();
+  buildWarehouse();
+  buildLastMile();
+  buildFleet();
+  buildResources();
+  buildClientVolumes();
+  buildClientMaster();
+  buildMasterData();
+  buildCustPlans();
+  buildDailyInput();
+  renderAll();
+  _ncWire();
+})();
+</script>
+
+</body>
+</html>
